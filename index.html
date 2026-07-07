@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #f0ebe3;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            color: #1e1e2a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ===== ANIMATED BACKGROUND ===== */
+        .bg-effect {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse at 20% 50%, rgba(111, 137, 97, 0.04), transparent 50%),
+                        radial-gradient(ellipse at 80% 30%, rgba(194, 158, 99, 0.03), transparent 40%),
+                        radial-gradient(ellipse at 50% 80%, rgba(111, 137, 97, 0.02), transparent 30%);
+            animation: bgFloat 20s ease-in-out infinite;
+        }
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            33% { transform: translate(2%, -2%) rotate(2deg) scale(1.02); }
+            66% { transform: translate(-1%, 1%) rotate(-1deg) scale(0.98); }
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.15;
+            animation: orbFloat 25s ease-in-out infinite;
+        }
+        .orb-1 { width: 400px; height: 400px; background: #6F8961; top: -100px; right: -100px; animation-delay: 0s; }
+        .orb-2 { width: 300px; height: 300px; background: #C29E63; bottom: -80px; left: -80px; animation-delay: -8s; }
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(40px, -30px) scale(1.1); }
+            66% { transform: translate(-30px, 20px) scale(0.9); }
+        }
+
+        .wrap {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 400px;
+            animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(25px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        /* ===== FORCE UPDATE OVERLAY ===== */
+        .update-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(12px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeUp 0.5s ease;
+        }
+        .update-overlay.show {
+            display: flex;
+        }
+        .update-box {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 32px 28px;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.04);
+            animation: scaleIn 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.92); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .update-box .icon {
+            font-size: 48px;
+            color: #6F8961;
+            margin-bottom: 12px;
+        }
+        .update-box h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e1e2a;
+            margin-bottom: 8px;
+        }
+        .update-box p {
+            font-size: 13px;
+            color: #888;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+        .update-box .btn-update {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #6F8961, #C29E63);
+            color: #fff;
+            transition: all 0.4s ease;
+        }
+        .update-box .btn-update:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(111, 137, 97, 0.15);
+        }
+
+        /* ===== CARD ===== */
+        .card {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 24px;
+            padding: 40px 30px;
+            transition: all 0.5s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+        }
+        .card:hover {
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04);
+            transform: translateY(-2px);
+        }
+
+        /* ===== LOGO ===== */
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .logo .icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(111, 137, 97, 0.08);
+            border: 1px solid rgba(194, 158, 99, 0.08);
+            border-radius: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #6F8961;
+            margin-bottom: 12px;
+            transition: all 0.4s ease;
+        }
+        .logo .icon:hover {
+            transform: scale(1.05) rotate(-5deg);
+            border-color: rgba(194, 158, 99, 0.15);
+        }
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e1e2a;
+            letter-spacing: -0.5px;
+        }
+        .logo h1 span {
+            color: #C29E63;
+        }
+        .logo p {
+            font-size: 11px;
+            color: #999;
+            letter-spacing: 4px;
+            margin-top: 4px;
+        }
+
+        /* ===== INPUT ===== */
+        .input-group {
+            margin-bottom: 18px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+        .input-group .input-wrap {
+            display: flex;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            padding: 4px;
+            transition: all 0.4s ease;
+        }
+        .input-group .input-wrap:focus-within {
+            border-color: #C29E63;
+            background: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 0 4px rgba(194, 158, 99, 0.04);
+        }
+        .input-group .input-wrap input {
+            flex: 1;
+            padding: 14px 16px;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #1e1e2a;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+        .input-group .input-wrap input::placeholder {
+            color: #bbb;
+            font-weight: 400;
+            letter-spacing: 0px;
+        }
+        .input-group .input-wrap button {
+            background: transparent;
+            border: none;
+            border-radius: 12px;
+            padding: 0 18px;
+            color: #bbb;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .input-group .input-wrap button:hover {
+            color: #6F8961;
+            background: rgba(111, 137, 97, 0.04);
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            margin-bottom: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+            transition: left 0.6s ease;
+        }
+        .btn:hover::before {
+            left: 100%;
+        }
+        .btn:active {
+            transform: scale(0.97);
+            transition-duration: 0.1s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6F8961, #C29E63);
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(111, 137, 97, 0.15);
+        }
+
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #888;
+        }
+        .btn-outline:hover {
+            border-color: #C29E63;
+            color: #1e1e2a;
+            background: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn-telegram {
+            background: rgba(0, 136, 204, 0.03);
+            border: 1px solid rgba(0, 136, 204, 0.04);
+            color: #888;
+        }
+        .btn-telegram:hover {
+            background: rgba(0, 136, 204, 0.06);
+            border-color: rgba(0, 136, 204, 0.08);
+            color: #1e1e2a;
+            transform: translateY(-2px);
+        }
+
+        /* ===== RIPPLE EFFECT ===== */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            animation: btnRipple 0.6s ease-out forwards;
+            pointer-events: none;
+            width: 40px;
+            height: 40px;
+            transform: translate(-50%, -50%);
+        }
+        @keyframes btnRipple {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .btn-click {
+            animation: btnPop 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes btnPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+
+        /* ===== SPINNER ===== */
+        .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto;
+        }
+        .btn.loading .btn-text { display: none; }
+        .btn.loading .spinner { display: block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            padding: 14px 28px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            pointer-events: none;
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast-success {
+            color: #6F8961;
+            border-color: rgba(111, 137, 97, 0.1);
+        }
+        .toast-error {
+            color: #dc3545;
+            border-color: rgba(220, 53, 69, 0.1);
+        }
+
+        /* ===== PERMISSION MODAL ===== */
+        .perm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeUp 0.4s ease;
+        }
+        .perm-modal.show {
+            display: flex;
+        }
+        .perm-box {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 32px 28px;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            animation: scaleIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .perm-box .icon { font-size: 44px; color: #6F8961; margin-bottom: 12px; }
+        .perm-box h3 { font-size: 18px; font-weight: 700; color: #1e1e2a; margin-bottom: 6px; }
+        .perm-box p { font-size: 13px; color: #888; line-height: 1.5; margin-bottom: 20px; }
+        .perm-box .btn-group { display: flex; gap: 10px; }
+        .perm-box .btn-group button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .perm-box .btn-allow {
+            background: linear-gradient(135deg, #6F8961, #C29E63);
+            color: #fff;
+        }
+        .perm-box .btn-allow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(111, 137, 97, 0.15);
+        }
+        .perm-box .btn-deny {
+            background: rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            color: #888;
+        }
+        .perm-box .btn-deny:hover {
+            background: rgba(0, 0, 0, 0.04);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 8px;
+            color: #ccc;
+            letter-spacing: 3px;
+        }
+
+        @media (max-width: 400px) {
+            .card { padding: 28px 18px; }
+            .logo h1 { font-size: 20px; }
+            .perm-box { padding: 24px 18px; }
+            .update-box { padding: 24px 18px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== FORCE UPDATE OVERLAY ===== -->
+    <div class="update-overlay" id="updateOverlay">
+        <div class="update-box">
+            <div class="icon"><i class="fas fa-sync-alt fa-spin"></i></div>
+            <h2>Update Available!</h2>
+            <p id="updateMessage">New version is available. Please update to continue using the app.</p>
+            <button class="btn-update" onclick="openTelegramUpdate()">
+                <i class="fab fa-telegram"></i> Update Now
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== PERMISSION MODAL ===== -->
+    <div class="perm-modal" id="permModal">
+        <div class="perm-box">
+            <div class="icon"><i class="fas fa-clipboard"></i></div>
+            <h3>Allow Paste?</h3>
+            <p>We need permission to paste the license key from your clipboard.</p>
+            <div class="btn-group">
+                <button class="btn-deny" onclick="denyPaste()">Deny</button>
+                <button class="btn-allow" onclick="allowPaste()">Allow</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast"></div>
+
+    <div class="wrap">
+
+        <!-- ===== BACKGROUND EFFECTS ===== -->
+        <div class="bg-effect"></div>
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+
+        <div class="card">
+
+            <!-- ===== LOGO ===== -->
+            <div class="logo">
+                <div class="icon"><i class="fas fa-bolt"></i></div>
+                <h1>REVO <span>FIXER</span></h1>
+                <p>CRAZY TIME REVO</p>
+            </div>
+
+            <!-- ===== INPUT ===== -->
+            <div class="input-group">
+                <label>🔑 License Key</label>
+                <div class="input-wrap">
+                    <input type="password" id="licenseKey" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="25">
+                    <button onclick="pasteKey()"><i class="fas fa-paste"></i></button>
+                </div>
+            </div>
+
+            <!-- ===== BUTTONS ===== -->
+            <button class="btn btn-primary" id="loginBtn" onclick="login()">
+                <span class="btn-text"><i class="fas fa-key"></i> Activate License</span>
+                <span class="spinner"></span>
+            </button>
+
+            <button class="btn btn-outline" onclick="window.location.href='packages.html'">
+                <i class="fas fa-shopping-cart"></i> Buy License
+            </button>
+
+            <button class="btn btn-telegram" id="supportBtn" onclick="openSupport()">
+                <i class="fab fa-telegram"></i> Support
+            </button>
+
+            <div class="footer">REVO FIXER © 2026</div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 🔥 FIREBASE CONFIG - আপনার NEW Project
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLz9LCMNsfb7tHJ2t-oocGjVD-nVox3GM",
+            authDomain: "revo-fixer-45a26.firebaseapp.com",
+            databaseURL: "https://revo-fixer-45a26-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "revo-fixer-45a26",
+            storageBucket: "revo-fixer-45a26.firebasestorage.app",
+            messagingSenderId: "496963115399",
+            appId: "1:496963115399:web:d38ec404edff64dfecdb22"
+        };
+
+        // ============================================================
+        // 🚀 FIREBASE INITIALIZE
+        // ============================================================
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let telegramLink = 'https://t.me/+CNJHfpdP1ck0NDA1';
+
+        // ============================================================
+        // 🎬 CLICK HANDLER WITH RIPPLE
+        // ============================================================
+        function handleClick(event, element) {
+            const rect = element.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            element.appendChild(ripple);
+
+            setTimeout(() => { ripple.remove(); }, 600);
+
+            element.classList.remove('btn-click');
+            void element.offsetWidth;
+            element.classList.add('btn-click');
+            setTimeout(() => { element.classList.remove('btn-click'); }, 300);
+        }
+
+        // ============================================================
+        // 🔗 TELEGRAM LINK LOAD
+        // ============================================================
+        function loadTelegramLink() {
+            db.ref('appSettings/telegramLink').once('value')
+                .then((snapshot) => {
+                    if (snapshot.exists()) {
+                        telegramLink = snapshot.val();
+                        console.log('✅ Telegram Link loaded:', telegramLink);
+                    }
+                })
+                .catch((error) => {
+                    console.error('❌ Error loading Telegram link:', error);
+                });
+        }
+
+        function openSupport() {
+            window.open(telegramLink, '_blank');
+        }
+
+        function openTelegramUpdate() {
+            window.open(telegramLink, '_blank');
+        }
+
+        // ============================================================
+        // 🛠️ FORCE UPDATE CHECK
+        // ============================================================
+        function checkForceUpdate() {
+            db.ref('appSettings/forceUpdate').once('value')
+                .then((snapshot) => {
+                    const data = snapshot.val();
+                    if (data && data.enabled === true) {
+                        // Force Update চালু আছে
+                        document.getElementById('updateMessage').textContent = 
+                            data.message || 'New version is available. Please update to continue using the app.';
+                        if (data.telegramLink) {
+                            telegramLink = data.telegramLink;
+                        }
+                        document.getElementById('updateOverlay').classList.add('show');
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        // Force Update বন্ধ, লগইন করতে দেবে
+                        console.log('✅ Force update is disabled');
+                    }
+                })
+                .catch((error) => {
+                    console.error('❌ Error checking force update:', error);
+                });
+        }
+
+        // ============================================================
+        // 🔔 NOTIFICATION PERMISSION
+        // ============================================================
+        function requestNotificationPermission() {
+            if (!('Notification' in window)) {
+                console.log('⚠️ Notifications not supported');
+                return;
+            }
+
+            if (Notification.permission === 'granted') {
+                console.log('✅ Notification permission already granted');
+                return;
+            }
+
+            if (Notification.permission === 'denied') {
+                console.log('❌ Notification permission denied');
+                return;
+            }
+
+            // Request permission
+            Notification.requestPermission().then(function(permission) {
+                if (permission === 'granted') {
+                    console.log('✅ Notification permission granted!');
+                } else {
+                    console.log('❌ Notification permission denied');
+                }
+            });
+        }
+
+        // ============================================================
+        // 📱 DEVICE INFO - AUTO COLLECT
+        // ============================================================
+        function getDeviceInfo() {
+            let deviceId = localStorage.getItem('deviceId');
+            if (!deviceId) {
+                deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
+                localStorage.setItem('deviceId', deviceId);
+            }
+
+            const userAgent = navigator.userAgent;
+            let deviceName = 'Unknown Device';
+            let deviceModel = 'Unknown Model';
+            let deviceBrand = 'Unknown Brand';
+            let os = 'Unknown OS';
+
+            // Detect Device
+            if (/android/i.test(userAgent)) {
+                deviceBrand = 'Android';
+                const match = userAgent.match(/; (.*?) Build\//);
+                if (match) deviceModel = match[1];
+                deviceName = 'Android Phone';
+            } else if (/iPhone|iPad|iPod/i.test(userAgent)) {
+                deviceBrand = 'Apple';
+                deviceModel = /iPhone|iPad|iPod/.exec(userAgent)?.[0] || 'iOS Device';
+                deviceName = /iPhone/.test(userAgent) ? 'iPhone' : /iPad/.test(userAgent) ? 'iPad' : 'iOS Device';
+            } else if (/Windows/i.test(userAgent)) {
+                deviceBrand = 'Windows';
+                deviceModel = 'PC';
+                deviceName = 'Windows PC';
+            } else if (/Macintosh/i.test(userAgent)) {
+                deviceBrand = 'Apple';
+                deviceModel = 'Mac';
+                deviceName = 'Mac';
+            } else if (/Linux/i.test(userAgent)) {
+                deviceBrand = 'Linux';
+                deviceModel = 'PC';
+                deviceName = 'Linux PC';
+            }
+
+            // Detect OS
+            if (/Windows NT 10.0/i.test(userAgent)) os = 'Windows 10/11';
+            else if (/Windows NT 6.1/i.test(userAgent)) os = 'Windows 7';
+            else if (/Mac OS X/i.test(userAgent)) os = 'macOS';
+            else if (/Android/i.test(userAgent)) os = 'Android';
+            else if (/iPhone|iPad/i.test(userAgent)) os = 'iOS';
+            else if (/Linux/i.test(userAgent)) os = 'Linux';
+
+            return {
+                deviceId: deviceId,
+                deviceName: deviceName,
+                deviceModel: deviceModel || 'Unknown',
+                deviceBrand: deviceBrand || 'Unknown',
+                os: os || 'Unknown',
+                browser: userAgent,
+                screenWidth: window.screen.width,
+                screenHeight: window.screen.height,
+                language: navigator.language || 'en',
+                installedAt: Date.now(),
+                lastActive: Date.now()
+            };
+        }
+
+        function saveDeviceInfo(userId) {
+            try {
+                const deviceInfo = getDeviceInfo();
+                db.ref(`users/${userId}/devices/${deviceInfo.deviceId}`).set(deviceInfo)
+                    .then(() => {
+                        console.log('✅ Device info saved:', deviceInfo);
+                    })
+                    .catch((error) => {
+                        console.error('❌ Failed to save device info:', error);
+                    });
+            } catch (error) {
+                console.error('❌ Device info error:', error);
+            }
+        }
+
+        // ============================================================
+        // 📋 PASTE FUNCTION
+        // ============================================================
+        let pasteResolve = null;
+
+        function pasteKey() {
+            const btn = document.querySelector('.input-wrap button');
+            handleClick(event, btn);
+
+            const input = document.getElementById('licenseKey');
+
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                navigator.clipboard.readText()
+                    .then(text => {
+                        if (text && text.trim()) {
+                            input.value = text.trim().toUpperCase();
+                            showToast('✅ License key pasted!');
+                        } else {
+                            showToast('❌ Clipboard is empty', true);
+                        }
+                    })
+                    .catch(err => {
+                        console.warn('Clipboard API failed:', err);
+                        // Show permission modal
+                        document.getElementById('permModal').classList.add('show');
+                    });
+            } else {
+                showToast('📋 Please press Ctrl+V to paste', true);
+                input.focus();
+                input.select();
+            }
+        }
+
+        function allowPaste() {
+            document.getElementById('permModal').classList.remove('show');
+            // Try again
+            const input = document.getElementById('licenseKey');
+            navigator.clipboard.readText()
+                .then(text => {
+                    if (text && text.trim()) {
+                        input.value = text.trim().toUpperCase();
+                        showToast('✅ License key pasted!');
+                    }
+                })
+                .catch(() => {
+                    showToast('📋 Please press Ctrl+V to paste', true);
+                    input.focus();
+                    input.select();
+                });
+        }
+
+        function denyPaste() {
+            document.getElementById('permModal').classList.remove('show');
+            showToast('❌ Paste permission denied', true);
+        }
+
+        // ============================================================
+        // 🔐 LOGIN FUNCTION
+        // ============================================================
+        async function login() {
+            const key = document.getElementById('licenseKey').value.trim().toUpperCase();
+            if (!key) {
+                showToast('Please enter license key!', true);
+                return;
+            }
+
+            const btn = document.getElementById('loginBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                // 🔥 আপনার লগইন লজিক এখানে বসবে
+                const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+
+                // Save device info
+                saveDeviceInfo(userId);
+
+                // Save activity log
+                await db.ref(`users/${userId}/activity`).push({
+                    text: '✅ Login successful',
+                    time: Date.now()
+                });
+
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                showToast('🔐 License activated!');
+
+                // Request notification permission
+                requestNotificationPermission();
+
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error('❌ Login error:', error);
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                showToast('❌ Error: ' + error.message, true);
+            }
+        }
+
+        // ============================================================
+        // 💬 TOAST
+        // ============================================================
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = isError ? 'toast toast-error show' : 'toast toast-success show';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ============================================================
+        // ⌨️ ENTER KEY SUPPORT
+        // ============================================================
+        document.getElementById('licenseKey').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') login();
+        });
+
+        // ============================================================
+        // 🚀 INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check force update first
+            checkForceUpdate();
+
+            // Load telegram link
+            loadTelegramLink();
+
+            // Request notification permission (soft)
+            setTimeout(() => {
+                requestNotificationPermission();
+            }, 2000);
+
+            console.log('🚀 Login page loaded with Force Update + Device Tracking!');
+        });
+    </script>
+
+</body>
+</html>

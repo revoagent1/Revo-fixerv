@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Activation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background: #f0ebe3;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            color: #1e1e2a;
+            padding: 16px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .header h1 i { color: #6F8961; }
+        .back-btn {
+            background: rgba(255,255,255,0.4);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #888;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.45);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 20px;
+            padding: 24px 20px;
+            margin: 14px 0;
+            text-align: center;
+        }
+
+        .logo-area { margin-bottom: 20px; }
+        .logo-area .icon {
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, #6F8961, #C29E63);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+        .logo-area h2 { font-size: 20px; font-weight: 700; }
+        .logo-area h2 span { color: #C29E63; }
+        .logo-area p { font-size: 12px; color: #999; margin-top: 4px; }
+
+        .info-box {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+            text-align: left;
+        }
+        .info-box i { color: #6F8961; font-size: 16px; }
+        .info-box span { font-size: 12px; color: #888; }
+
+        .input-group { margin-bottom: 18px; }
+        .input-group label {
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 6px;
+            text-align: left;
+        }
+        .input-group .input-wrap {
+            display: flex;
+            gap: 10px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 4px;
+            transition: all 0.3s ease;
+        }
+        .input-group .input-wrap:focus-within {
+            border-color: rgba(194,158,99,0.15);
+            background: rgba(255,255,255,0.3);
+        }
+        .input-group .input-wrap input {
+            flex: 1;
+            padding: 14px 16px;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #1e1e2a;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            font-family: 'Inter', monospace;
+            text-transform: uppercase;
+        }
+        .input-group .input-wrap input::placeholder {
+            color: #bbb;
+            font-weight: 400;
+            letter-spacing: 1px;
+        }
+        .input-group .input-wrap button {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 12px;
+            padding: 0 18px;
+            color: #999;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .input-group .input-wrap button:hover {
+            color: #6F8961;
+            background: rgba(111,137,97,0.05);
+        }
+
+        .error-msg {
+            font-size: 12px;
+            color: #dc3545;
+            margin-top: 8px;
+            display: none;
+            text-align: center;
+        }
+        .error-msg.show {
+            display: block;
+            animation: shake 0.5s ease;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #6F8961, #C29E63);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            margin-top: 6px;
+        }
+        .btn-submit::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+            transition: left 0.6s ease;
+        }
+        .btn-submit:hover::before { left: 100%; }
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(111,137,97,0.15);
+        }
+        .btn-submit:active { transform: scale(0.97); }
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-submit .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .btn-submit.loading .btn-text { display: none; }
+        .btn-submit.loading .spinner { display: block; }
+
+        .btn-submit.success {
+            background: linear-gradient(135deg, #059669, #10b981) !important;
+            animation: successPulse 0.6s ease;
+        }
+        @keyframes successPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .help-text {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 11px;
+            color: #bbb;
+        }
+        .help-text a {
+            color: #6F8961;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .help-text a:hover { text-decoration: underline; }
+
+        .footer { text-align: center; margin-top: 18px; font-size: 8px; color: #ccc; }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            animation: rippleAnim 0.6s ease-out forwards;
+            pointer-events: none;
+            width: 40px;
+            height: 40px;
+            transform: translate(-50%, -50%);
+        }
+        @keyframes rippleAnim {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        .btn-click { animation: btnPop 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+        @keyframes btnPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+
+        ::-webkit-scrollbar { width: 0; background: transparent; }
+        @media (max-width: 400px) {
+            .card { padding: 18px 14px; }
+            .header h1 { font-size: 17px; }
+            .input-group .input-wrap { flex-wrap: wrap; }
+            .input-group .input-wrap button { padding: 10px; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1><i class="fas fa-ticket-alt"></i>Activation</h1>
+        <a href="dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+    </div>
+
+    <div class="card">
+        <div class="logo-area">
+            <div class="icon"><i class="fas fa-bolt"></i></div>
+            <h2><span>ACTIVATION</span> CODE</h2>
+            <p>Enter code to start live signal</p>
+        </div>
+
+        <div class="info-box">
+            <i class="fas fa-info-circle"></i>
+            <span>Enter Activation code to access Crazy Time Revo Signal</span>
+        </div>
+
+        <div class="input-group">
+            <label><i class="fas fa-key" style="color:#6F8961;"></i> Activation Code</label>
+            <div class="input-wrap">
+                <input type="text" id="codeInput" placeholder="XXXX-XXXX-XXXX" maxlength="20" autocomplete="off">
+                <button onclick="pasteCode()"><i class="fas fa-paste"></i></button>
+            </div>
+            <div class="error-msg" id="codeError">⚠ Invalid or used activation code</div>
+        </div>
+
+        <button class="btn-submit" id="submitBtn" onclick="verifyCode()">
+            <span class="btn-text"><i class="fas fa-check-circle"></i> Activate Signal</span>
+            <span class="spinner"></span>
+        </button>
+
+        <div class="help-text">
+            <i class="fas fa-key"></i> Get code from <a href="https://t.me/+CNJHfpdP1ck0NDA1" target="_blank">Telegram Support</a>
+        </div>
+    </div>
+
+    <div class="footer">REVO FIXER © 2026</div>
+
+    <script>
+        // ============================================================
+        // 🔥 FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLz9LCMNsfb7tHJ2t-oocGjVD-nVox3GM",
+            authDomain: "revo-fixer-45a26.firebaseapp.com",
+            databaseURL: "https://revo-fixer-45a26-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "revo-fixer-45a26",
+            storageBucket: "revo-fixer-45a26.firebasestorage.app",
+            messagingSenderId: "496963115399",
+            appId: "1:496963115399:web:d38ec404edff64dfecdb22"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ============================================================
+        // 👤 CHECK USER
+        // ============================================================
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            alert('⚠️ Please login first! Redirecting...');
+            window.location.href = 'index.html';
+        }
+
+        // ============================================================
+        // 📋 PASTE CODE
+        // ============================================================
+        async function pasteCode() {
+            const input = document.getElementById('codeInput');
+            try {
+                const text = await navigator.clipboard.readText();
+                input.value = text.trim().toUpperCase();
+                showToast('✅ Code pasted!');
+            } catch (err) {
+                showToast('Press Ctrl+V to paste', true);
+                input.focus();
+                input.select();
+            }
+        }
+
+        // ============================================================
+        // 🔐 VERIFY CODE
+        // ============================================================
+        async function verifyCode() {
+            const code = document.getElementById('codeInput').value.trim().toUpperCase();
+            const errorEl = document.getElementById('codeError');
+            const inputEl = document.getElementById('codeInput');
+
+            errorEl.classList.remove('show');
+            inputEl.style.borderColor = '';
+
+            if (!code) {
+                errorEl.textContent = '⚠ Please enter activation code';
+                errorEl.classList.add('show');
+                inputEl.style.borderColor = '#dc3545';
+                return;
+            }
+
+            if (!userId) {
+                showToast('Please login first!', true);
+                setTimeout(() => window.location.href = 'index.html', 1500);
+                return;
+            }
+
+            const btn = document.getElementById('submitBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                const safeCode = code.replace(/[.#$\[\]]/g, '_');
+                const snapshot = await db.ref('activation_codes/' + safeCode).once('value');
+
+                if (!snapshot.exists()) {
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    errorEl.textContent = '⚠ Invalid activation code';
+                    errorEl.classList.add('show');
+                    inputEl.style.borderColor = '#dc3545';
+                    showToast('❌ Invalid activation code', true);
+                    return;
+                }
+
+                const data = snapshot.val();
+
+                if (data.active !== true && data.active !== "true") {
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    errorEl.textContent = '⚠ Code deactivated';
+                    errorEl.classList.add('show');
+                    inputEl.style.borderColor = '#dc3545';
+                    showToast('❌ Code deactivated', true);
+                    return;
+                }
+
+                if (data.used === true) {
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    errorEl.textContent = '⚠ Code already used';
+                    errorEl.classList.add('show');
+                    inputEl.style.borderColor = '#dc3545';
+                    showToast('❌ Code already used', true);
+                    return;
+                }
+
+                // Mark code as used
+                await db.ref('activation_codes/' + safeCode).update({
+                    used: true,
+                    usedAt: Date.now(),
+                    usedBy: userId,
+                    usedFor: 'Crazy Time Revo Signal'
+                });
+
+                // Add activity log
+                await db.ref('users/' + userId + '/activity').push({
+                    text: '🎯 Activated Crazy Time Revo Signal',
+                    time: Date.now()
+                });
+
+                btn.classList.remove('loading');
+                btn.classList.add('success');
+                btn.innerHTML = '<span class="btn-text"><i class="fas fa-check"></i> Activated!</span>';
+                btn.disabled = false;
+
+                showToast('✅ Code Verified! Redirecting...');
+
+                setTimeout(() => {
+                    window.location.href = 'live-game.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error('Error:', error);
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                errorEl.textContent = '⚠ Connection error. Try again.';
+                errorEl.classList.add('show');
+                showToast('❌ Connection error', true);
+            }
+        }
+
+        // ============================================================
+        // 💬 TOAST
+        // ============================================================
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = isError ? 'toast toast-error show' : 'toast toast-success show';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ============================================================
+        // ⌨️ ENTER KEY SUPPORT
+        // ============================================================
+        document.getElementById('codeInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') verifyCode();
+        });
+
+        // ============================================================
+        // 🚀 INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎯 Activation page loaded!');
+        });
+    </script>
+
+</body>
+</html>

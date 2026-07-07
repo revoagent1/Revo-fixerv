@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Live Signal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background: #0a0a12;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            color: #fff;
+            padding: 16px;
+            overflow-x: hidden;
+        }
+
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: radial-gradient(ellipse at 20% 50%, rgba(111,137,97,0.05), transparent 60%),
+                        radial-gradient(ellipse at 80% 30%, rgba(194,158,99,0.03), transparent 50%);
+            animation: bgFloat 20s ease-in-out infinite;
+        }
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            33% { transform: translate(2%, -2%) rotate(2deg) scale(1.02); }
+            66% { transform: translate(-1%, 1%) rotate(-1deg) scale(0.98); }
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.12;
+            animation: orbFloat 25s ease-in-out infinite;
+        }
+        .orb-1 { width: 400px; height: 400px; background: #6F8961; top: -100px; right: -100px; animation-delay: 0s; }
+        .orb-2 { width: 300px; height: 300px; background: #C29E63; bottom: -80px; left: -80px; animation-delay: -8s; }
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(40px, -30px) scale(1.1); }
+            66% { transform: translate(-30px, 20px) scale(0.9); }
+        }
+
+        .wrap { position: relative; z-index: 1; max-width: 420px; margin: 0 auto; padding: 10px 0 30px; }
+
+        /* ============================================================
+                   ANIMATIONS
+                   ============================================================ */
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(25px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes glowPulse { 0%, 100% { box-shadow: 0 0 20px rgba(111,137,97,0.2); } 50% { box-shadow: 0 0 50px rgba(194,158,99,0.3); } }
+        @keyframes spinSlow { to { transform: rotate(360deg); } }
+        @keyframes floating { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+        @keyframes shimmerLine { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 20px rgba(194,158,99,0.1); } 50% { box-shadow: 0 0 40px rgba(194,158,99,0.2); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
+        @keyframes cardReveal { from { opacity: 0; transform: scale(0.8) rotateY(90deg); } to { opacity: 1; transform: scale(1) rotateY(0); } }
+
+        /* ============================================================
+                   HEADER
+                   ============================================================ */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            animation: slideDown 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header h1 i { color: #C29E63; font-size: 22px; animation: spinSlow 20s linear infinite; }
+        .header h1 span { color: #C29E63; }
+        .back-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            color: #888;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .back-btn:hover {
+            border-color: rgba(194,158,99,0.15);
+            color: #C29E63;
+            background: rgba(255,255,255,0.04);
+            transform: translateY(-2px);
+        }
+
+        /* ============================================================
+                   LIVE STATUS
+                   ============================================================ */
+        .live-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        .live-status .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .live-status .live-badge .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: pulseDot 1.5s infinite;
+        }
+        .live-status .live-badge span {
+            font-size: 11px; color: #ef4444; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .live-status .live-time { font-size: 10px; color: rgba(255,255,255,0.15); }
+
+        /* ============================================================
+                   SIGNAL CARD
+                   ============================================================ */
+        .signal-card {
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 24px;
+            padding: 28px 20px;
+            margin: 16px 0;
+            text-align: center;
+            animation: pulseGlow 3s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .signal-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 20%, rgba(111,137,97,0.03), transparent 60%);
+            pointer-events: none;
+        }
+        .signal-card .shimmer-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #6F8961, #C29E63, transparent);
+            background-size: 200% 100%;
+            animation: shimmerLine 3s linear infinite;
+        }
+
+        .signal-image-container {
+            width: 160px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            position: relative;
+        }
+        .signal-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            animation: floating 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 30px rgba(194,158,99,0.15));
+            transition: all 0.5s ease;
+        }
+        .signal-image-container img:hover {
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 50px rgba(194,158,99,0.25));
+        }
+
+        .signal-number {
+            font-size: 42px;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1;
+            margin-bottom: 2px;
+            animation: cardReveal 0.6s ease;
+            text-shadow: 0 0 40px rgba(194,158,99,0.2);
+        }
+        .signal-number.bonus { color: #f59e0b; text-shadow: 0 0 40px rgba(245,158,11,0.2); }
+        .signal-number.win { color: #34d399; text-shadow: 0 0 40px rgba(52,211,153,0.2); }
+
+        .signal-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.2);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 2px;
+        }
+        .signal-multiplier {
+            font-size: 18px;
+            font-weight: 700;
+            color: #34d399;
+            margin-top: 6px;
+        }
+
+        .signal-confidence {
+            margin-top: 14px;
+            width: 80%;
+            max-width: 280px;
+        }
+        .signal-confidence .label {
+            font-size: 10px;
+            color: rgba(255,255,255,0.2);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signal-confidence .bar {
+            height: 4px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .signal-confidence .bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6F8961, #C29E63);
+            border-radius: 4px;
+            transition: width 1s ease;
+            width: 0%;
+        }
+        .signal-confidence .bar .fill.high { background: linear-gradient(90deg, #34d399, #059669); }
+        .signal-confidence .bar .fill.medium { background: linear-gradient(90deg, #f59e0b, #d97706); }
+        .signal-confidence .bar .fill.low { background: linear-gradient(90deg, #f87171, #dc2626); }
+
+        .signal-card .placeholder {
+            color: rgba(255,255,255,0.08);
+            font-size: 13px;
+            letter-spacing: 2px;
+        }
+        .signal-card .placeholder .icon {
+            font-size: 48px;
+            color: rgba(255,255,255,0.04);
+            display: block;
+            margin-bottom: 12px;
+            animation: floating 3s ease-in-out infinite;
+        }
+        .signal-card .placeholder .text {
+            font-size: 14px;
+            color: rgba(255,255,255,0.06);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        .signal-card .placeholder .sub {
+            font-size: 10px;
+            color: rgba(255,255,255,0.03);
+            margin-top: 4px;
+            letter-spacing: 2px;
+        }
+
+        /* ============================================================
+                   ANALYSIS STATS
+                   ============================================================ */
+        .analysis-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 16px 0;
+        }
+        .analysis-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.03);
+            border-radius: 14px;
+            padding: 14px 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .analysis-item:hover {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(194,158,99,0.05);
+            transform: translateY(-2px);
+        }
+        .analysis-item .num {
+            font-size: 18px;
+            font-weight: 700;
+            color: #C29E63;
+        }
+        .analysis-item .lbl {
+            font-size: 8px;
+            color: rgba(255,255,255,0.15);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        /* ============================================================
+                   BUTTONS
+                   ============================================================ */
+        .btn-generate {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            background: linear-gradient(135deg, #6F8961, #C29E63);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.5s ease;
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 20px rgba(111,137,97,0.1);
+        }
+        .btn-generate::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+            transition: left 0.6s ease;
+        }
+        .btn-generate:hover::before { left: 100%; }
+        .btn-generate:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(111,137,97,0.2);
+        }
+        .btn-generate:active { transform: scale(0.97); }
+        .btn-generate:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-generate .btn-icon {
+            font-size: 18px;
+            animation: floating 2s ease-in-out infinite;
+        }
+
+        .btn-generate .spinner {
+            display: none;
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        .btn-generate.loading .btn-text { display: none; }
+        .btn-generate.loading .spinner { display: block; }
+
+        .btn-refresh-small {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 12px;
+            color: rgba(255,255,255,0.15);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 6px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-refresh-small:hover {
+            border-color: rgba(194,158,99,0.08);
+            color: #C29E63;
+            background: rgba(255,255,255,0.02);
+        }
+        .btn-refresh-small i { margin-right: 4px; }
+
+        /* ============================================================
+                   CONFETTI OVERLAY
+                   ============================================================ */
+        .confetti-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
+        }
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            animation: confettiFall linear forwards;
+            opacity: 0;
+        }
+        @keyframes confettiFall {
+            0% { transform: translateY(-20px) rotate(0deg) scale(1); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg) scale(0.5); opacity: 0; }
+        }
+
+        /* ============================================================
+                   TOAST
+                   ============================================================ */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            padding: 12px 24px;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            pointer-events: none;
+            background: rgba(10,10,18,0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast-success { color: #34d399; border-color: rgba(52,211,153,0.1); }
+        .toast-error { color: #f87171; border-color: rgba(248,113,113,0.1); }
+        .toast-warning { color: #f59e0b; border-color: rgba(245,158,11,0.1); }
+
+        .footer { text-align: center; margin-top: 18px; font-size: 8px; color: rgba(255,255,255,0.03); letter-spacing: 3px; }
+
+        ::-webkit-scrollbar { width: 0; background: transparent; }
+
+        @media (max-width: 400px) {
+            .signal-image-container { width: 120px; height: 75px; }
+            .signal-number { font-size: 34px; }
+            .analysis-stats { gap: 6px; }
+            .analysis-item .num { font-size: 15px; }
+            .header h1 { font-size: 17px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-gradient"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="wrap">
+
+        <!-- ===== HEADER ===== -->
+        <div class="header">
+            <h1><i class="fas fa-bolt"></i>REVO <span>SIGNAL</span></h1>
+            <a href="dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+        </div>
+
+        <!-- ===== LIVE STATUS ===== -->
+        <div class="live-status">
+            <div class="live-badge">
+                <span class="dot"></span>
+                <span id="liveStatus">READY</span>
+            </div>
+            <div class="live-time" id="liveTime">Waiting...</div>
+        </div>
+
+        <!-- ===== SIGNAL CARD ===== -->
+        <div class="signal-card" id="signalCard">
+            <div class="shimmer-line"></div>
+            <div id="signalContent">
+                <div class="placeholder">
+                    <span class="icon"><i class="fas fa-hand-pointer"></i></span>
+                    <div class="text">Click to Generate Signal</div>
+                    <div class="sub">AI Powered Prediction</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== ANALYSIS STATS ===== -->
+        <div class="analysis-stats">
+            <div class="analysis-item">
+                <div class="num" id="analysisTotal">0</div>
+                <div class="lbl">Total</div>
+            </div>
+            <div class="analysis-item">
+                <div class="num" id="analysisAccuracy">0%</div>
+                <div class="lbl">Accuracy</div>
+            </div>
+            <div class="analysis-item">
+                <div class="num" id="analysisStreak">0</div>
+                <div class="lbl">Streak</div>
+            </div>
+        </div>
+
+        <!-- ===== GENERATE BUTTON ===== -->
+        <button class="btn-generate" id="generateBtn" onclick="generateSignal()">
+            <span class="btn-text"><span class="btn-icon"><i class="fas fa-magic"></i></span> Get Signal</span>
+            <span class="spinner"></span>
+        </button>
+
+        <button class="btn-refresh-small" onclick="generateSignal()">
+            <i class="fas fa-sync-alt"></i> Refresh Signal
+        </button>
+
+        <div class="footer">REVO FIXER © 2026</div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ===== CONFETTI CONTAINER ===== -->
+    <div class="confetti-overlay" id="confettiOverlay"></div>
+
+    <script>
+        // ============================================================
+        // 🔥 FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLz9LCMNsfb7tHJ2t-oocGjVD-nVox3GM",
+            authDomain: "revo-fixer-45a26.firebaseapp.com",
+            databaseURL: "https://revo-fixer-45a26-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "revo-fixer-45a26",
+            storageBucket: "revo-fixer-45a26.firebasestorage.app",
+            messagingSenderId: "496963115399",
+            appId: "1:496963115399:web:d38ec404edff64dfecdb22"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ============================================================
+        // 👤 CHECK USER - FIXED
+        // ============================================================
+        function checkUser() {
+            const userId = localStorage.getItem('userId');
+            console.log('👤 User ID from localStorage:', userId);
+            
+            if (!userId) {
+                showToast('⚠️ Please login first! Redirecting...', 'error');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+                return false;
+            }
+            return true;
+        }
+
+        // ============================================================
+        // 💬 TOAST
+        // ============================================================
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = `toast toast-${type} show`;
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ============================================================
+        // 🎯 CRAZY TIME SIGNAL ENGINE
+        // ============================================================
+        const results = ['1', '2', '5', '10', 'COIN FLIP', 'CASH HUNT', 'PACHINKO', 'CRAZY TIME'];
+        const multipliers = [1, 2, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200, 250, 400];
+        const bonusGames = ['COIN FLIP', 'CASH HUNT', 'PACHINKO', 'CRAZY TIME'];
+
+        const imageUrls = {
+            '1': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539269/one-card_r0ffuy.png',
+            '2': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539364/two-card_ayl9lu.png',
+            '5': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539403/five-card_msp0cr.png',
+            '10': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539416/ten-card_cx3cvj.png',
+            'PACHINKO': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539441/pachiko-card_zxiw7r.png',
+            'COIN FLIP': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539429/coin-flip-card_kbbg7m.png',
+            'CASH HUNT': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539519/cash-hunt-card_jp8hr3.png',
+            'CRAZY TIME': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539531/crazy-time-card_dftfw3.png'
+        };
+
+        let history = [];
+        let stats = { total: 0, correct: 0, streak: 0 };
+        let isGenerating = false;
+
+        // ============================================================
+        // 🧠 SMART PREDICTION ENGINE
+        // ============================================================
+        function analyzePattern() {
+            if (history.length < 5) {
+                const weights = [35, 30, 18, 12, 2, 1.5, 1, 0.5];
+                return weightedRandom(results, weights);
+            }
+
+            const last10 = history.slice(-10);
+            const freq = {};
+            last10.forEach(r => { freq[r] = (freq[r] || 0) + 1; });
+            
+            const bonusCount = last10.filter(r => bonusGames.includes(r)).length;
+            let consecutive = 0;
+            for (let i = 1; i < last10.length; i++) {
+                if (last10[i] === last10[i-1]) consecutive++;
+            }
+
+            let prediction = '1';
+            let confidence = 60;
+
+            if (bonusCount > 3) {
+                const numbers = ['1', '2', '5', '10'];
+                const numFreq = {};
+                numbers.forEach(n => { numFreq[n] = last10.filter(r => r === n).length; });
+                prediction = Object.keys(numFreq).reduce((a, b) => numFreq[a] > numFreq[b] ? a : b);
+                confidence = 70 + Math.random() * 10;
+            } else if (consecutive > 2) {
+                const allNumbers = ['1', '2', '5', '10'];
+                const available = allNumbers.filter(n => !last10.slice(-3).includes(n));
+                prediction = available.length > 0 ? available[Math.floor(Math.random() * available.length)] : '1';
+                confidence = 65 + Math.random() * 15;
+            } else {
+                const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
+                if (sorted.length > 0) {
+                    prediction = sorted[0][0];
+                    confidence = 55 + Math.random() * 20;
+                }
+            }
+
+            return { result: prediction, confidence: Math.min(95, Math.round(confidence)) };
+        }
+
+        function weightedRandom(items, weights) {
+            const total = weights.reduce((a, b) => a + b, 0);
+            let rand = Math.random() * total;
+            for (let i = 0; i < items.length; i++) {
+                rand -= weights[i];
+                if (rand <= 0) return items[i];
+            }
+            return items[items.length - 1];
+        }
+
+        // ============================================================
+        // 🎬 GENERATE SIGNAL - FIXED
+        // ============================================================
+        function generateSignal() {
+            // 🔥 First check if user is logged in
+            if (!checkUser()) {
+                return;
+            }
+
+            if (isGenerating) return;
+            isGenerating = true;
+
+            const btn = document.getElementById('generateBtn');
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            const signalContent = document.getElementById('signalContent');
+
+            // Show loading state
+            signalContent.innerHTML = `
+                <div class="signal-image-container">
+                    <div style="font-size:48px;color:rgba(255,255,255,0.05);"><i class="fas fa-spinner fa-spin"></i></div>
+                </div>
+                <div style="font-size:18px;color:rgba(255,255,255,0.05);letter-spacing:3px;text-transform:uppercase;">Analyzing...</div>
+            `;
+
+            // Simulate analysis delay
+            setTimeout(() => {
+                const prediction = analyzePattern();
+                const result = prediction.result;
+                const confidence = prediction.confidence;
+                const multiplier = bonusGames.includes(result) ? 
+                    multipliers[Math.floor(Math.random() * multipliers.length)] : null;
+                const isBonus = bonusGames.includes(result);
+                const isWin = multiplier && multiplier > 50;
+
+                // Update history
+                history.push(result);
+                if (history.length > 50) history = history.slice(-50);
+
+                // Update stats
+                stats.total++;
+                const isCorrect = Math.random() < (confidence / 100);
+                if (isCorrect) {
+                    stats.correct++;
+                    stats.streak++;
+                } else {
+                    stats.streak = 0;
+                }
+
+                // Get image
+                const imgUrl = imageUrls[result] || imageUrls['1'];
+
+                let numberClass = '';
+                if (isBonus) numberClass = 'bonus';
+                else if (isWin) numberClass = 'win';
+
+                let confidenceClass = 'medium';
+                if (confidence >= 80) confidenceClass = 'high';
+                else if (confidence >= 60) confidenceClass = 'medium';
+                else confidenceClass = 'low';
+
+                // Show result with image
+                signalContent.innerHTML = `
+                    <div class="signal-image-container">
+                        <img src="${imgUrl}" alt="${result}" loading="lazy">
+                    </div>
+                    <div class="signal-number ${numberClass}">${result}</div>
+                    ${multiplier ? `<div class="signal-multiplier">💰 ${multiplier}x Multiplier</div>` : ''}
+                    <div class="signal-label">${isBonus ? '🎯 BONUS GAME' : '🎯 PREDICTION'}</div>
+                    <div class="signal-confidence">
+                        <div class="label">
+                            <span>AI Confidence</span>
+                            <span>${confidence}%</span>
+                        </div>
+                        <div class="bar">
+                            <div class="fill ${confidenceClass}" style="width:${confidence}%;"></div>
+                        </div>
+                    </div>
+                `;
+
+                // Update card animation
+                const card = document.getElementById('signalCard');
+                card.style.animation = 'none';
+                void card.offsetWidth;
+                card.style.animation = 'glowPulse 3s ease-in-out infinite';
+
+                // Update stats
+                document.getElementById('analysisTotal').textContent = stats.total;
+                document.getElementById('analysisAccuracy').textContent = 
+                    stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) + '%' : '0%';
+                document.getElementById('analysisStreak').textContent = stats.streak;
+
+                // Update live status
+                document.getElementById('liveStatus').textContent = 'LIVE';
+                document.getElementById('liveTime').textContent = new Date().toLocaleTimeString('en-US', {
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
+
+                // Confetti on bonus or big win
+                if (isBonus || (multiplier && multiplier > 50)) {
+                    triggerConfetti(20);
+                }
+
+                // Reset button
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                isGenerating = false;
+
+            }, 2000);
+        }
+
+        // ============================================================
+        // 🎊 CONFETTI EFFECT
+        // ============================================================
+        function triggerConfetti(count = 15) {
+            const container = document.getElementById('confettiOverlay');
+            const colors = ['#6F8961', '#C29E63', '#34d399', '#f59e0b', '#ef4444', '#818cf8', '#f472b6'];
+
+            for (let i = 0; i < count; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.style.left = Math.random() * 100 + '%';
+                piece.style.top = '-10px';
+                piece.style.width = (Math.random() * 8 + 4) + 'px';
+                piece.style.height = (Math.random() * 8 + 4) + 'px';
+                piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+                piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                piece.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+                piece.style.animationDelay = (Math.random() * 0.8) + 's';
+                container.appendChild(piece);
+
+                setTimeout(() => { piece.remove(); }, 3000);
+            }
+        }
+
+        // ============================================================
+        // 🚀 PAGE LOAD
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎯 Live Signal page loaded!');
+            
+            // Check user on load
+            if (!checkUser()) {
+                return;
+            }
+
+            // Auto generate first signal after 1 second
+            setTimeout(() => {
+                generateSignal();
+            }, 1000);
+        });
+    </script>
+
+</body>
+</html>
