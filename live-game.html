@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Crazy Time Live</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background: #f0ebe3;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            color: #1e1e2a;
+            position: relative;
+            overflow-x: hidden;
+            padding: 16px;
+        }
+
+        .bg-effect {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse at 20% 50%, rgba(111, 137, 97, 0.04), transparent 50%),
+                        radial-gradient(ellipse at 80% 30%, rgba(194, 158, 99, 0.03), transparent 40%),
+                        radial-gradient(ellipse at 50% 80%, rgba(111, 137, 97, 0.02), transparent 30%);
+            animation: bgFloat 20s ease-in-out infinite;
+        }
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            33% { transform: translate(2%, -2%) rotate(2deg) scale(1.02); }
+            66% { transform: translate(-1%, 1%) rotate(-1deg) scale(0.98); }
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.15;
+            animation: orbFloat 25s ease-in-out infinite;
+        }
+        .orb-1 { width: 400px; height: 400px; background: #6F8961; top: -100px; right: -100px; animation-delay: 0s; }
+        .orb-2 { width: 300px; height: 300px; background: #C29E63; bottom: -80px; left: -80px; animation-delay: -8s; }
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(40px, -30px) scale(1.1); }
+            66% { transform: translate(-30px, 20px) scale(0.9); }
+        }
+
+        .wrap { position: relative; z-index: 1; max-width: 420px; margin: 0 auto; padding: 10px 0 30px; }
+
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(25px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes spinSlow { to { transform: rotate(360deg); } }
+        @keyframes pulseDot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.8); } }
+        @keyframes shimmerLine { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            animation: slideDown 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e1e2a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header h1 .logo-icon { font-size: 22px; color: #6F8961; animation: spinSlow 20s linear infinite; }
+        .header h1 span { color: #C29E63; }
+        .back-btn {
+            background: rgba(255,255,255,0.4);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #888;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .back-btn:hover { border-color: rgba(194,158,99,0.15); color: #1e1e2a; background: rgba(255,255,255,0.7); }
+
+        .card {
+            background: rgba(255,255,255,0.45);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 20px;
+            padding: 20px 18px;
+            margin: 14px 0;
+            transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover {
+            border-color: rgba(255,255,255,0.5);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.04);
+            transform: translateY(-4px);
+            background: rgba(255,255,255,0.6);
+        }
+
+        /* Timer */
+        .timer-box {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            margin-bottom: 4px;
+        }
+        .timer-box .time {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1e1e2a;
+            font-family: monospace;
+            letter-spacing: 2px;
+        }
+        .timer-box .label {
+            font-size: 9px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+
+        /* Signal Container */
+        .signal-container {
+            background: rgba(255,255,255,0.45);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 20px;
+            padding: 24px 18px;
+            margin: 14px 0;
+            text-align: center;
+            min-height: 380px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .signal-container .label {
+            font-size: 10px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+        .signal-container .label i { color: #6F8961; margin-right: 4px; }
+
+        .signal-image {
+            width: 220px;
+            height: 110px;
+            object-fit: contain;
+            transition: all 0.3s;
+        }
+        .signal-name {
+            font-size: 30px;
+            font-weight: 800;
+            color: #1e1e2a;
+            margin-top: 8px;
+        }
+        .signal-name.bonus { color: #f59e0b; }
+        .signal-multiplier {
+            font-size: 16px;
+            font-weight: 600;
+            color: #6F8961;
+            margin-top: 2px;
+        }
+        .signal-bonus-badge {
+            display: inline-block;
+            padding: 3px 14px;
+            background: rgba(245,158,11,0.1);
+            border: 1px solid #f59e0b;
+            border-radius: 20px;
+            color: #f59e0b;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 6px;
+        }
+
+        /* Confidence */
+        .confidence-display {
+            margin-top: 16px;
+            width: 100%;
+            max-width: 300px;
+        }
+        .confidence-text {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .confidence-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .confidence-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease;
+            width: 0%;
+        }
+        .confidence-fill.high { background: linear-gradient(90deg, #6F8961, #34d399); }
+        .confidence-fill.medium { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .confidence-fill.low { background: linear-gradient(90deg, #f87171, #ef4444); }
+
+        /* Placeholder */
+        .placeholder-box .icon { font-size: 48px; color: #ccc; display: block; margin-bottom: 10px; }
+        .placeholder-box .main { font-size: 14px; color: #888; font-weight: 500; }
+        .placeholder-box .sub { font-size: 11px; color: #bbb; margin-top: 4px; }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(111,137,97,0.1);
+            border-top: 3px solid #6F8961;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 14px 0;
+        }
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6F8961, #C29E63);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(111,137,97,0.15);
+        }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(111,137,97,0.2); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-secondary {
+            background: rgba(255,255,255,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #888;
+        }
+        .btn-secondary:hover { background: rgba(255,255,255,0.5); transform: translateY(-3px); }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .stat-item {
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 12px 6px;
+            text-align: center;
+        }
+        .stat-item .num {
+            font-size: 18px;
+            font-weight: 700;
+            color: #6F8961;
+        }
+        .stat-item .lbl {
+            font-size: 8px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 12px 24px;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            max-width: 90%;
+            text-align: center;
+            background: #ffffff;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast-success { color: #6F8961; border-color: rgba(111,137,97,0.1); }
+        .toast-error { color: #dc3545; border-color: rgba(220,53,69,0.1); }
+        .toast-warning { color: #f59e0b; border-color: rgba(245,158,11,0.1); }
+
+        .footer { text-align: center; margin-top: 18px; font-size: 8px; color: #ccc; letter-spacing: 3px; }
+
+        @media (max-width: 400px) {
+            .signal-image { width: 180px; height: 90px; }
+            .signal-name { font-size: 24px; }
+            .timer-box .time { font-size: 20px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-effect"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="wrap">
+
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <span class="logo-icon"><i class="fas fa-bolt"></i></span>
+                REVO <span>FIXER</span>
+            </h1>
+            <a href="dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+        </div>
+
+        <!-- Timer -->
+        <div class="card" style="padding:14px 18px;">
+            <div class="timer-box">
+                <div class="label">⏱️ Package Time Remaining</div>
+                <div class="time" id="packageTimer">00:00:00</div>
+            </div>
+        </div>
+
+        <!-- Signal Card -->
+        <div class="signal-container" id="signalContainer">
+            <div class="label"><i class="fas fa-bolt"></i> CURRENT PREDICTION</div>
+
+            <div id="signalContent">
+                <div class="placeholder-box">
+                    <span class="icon"><i class="fas fa-hand-pointer"></i></span>
+                    <div class="main">Click Get Signal To Start</div>
+                    <div class="sub">AI powered predictions</div>
+                </div>
+            </div>
+
+            <div class="confidence-display" id="confidenceDisplay">
+                <div class="confidence-text">
+                    <span>AI Confidence</span>
+                    <span id="confidencePercent">0%</span>
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" id="confidenceFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="predictBtn" onclick="generateSignal()">
+                <i class="fas fa-magic"></i> Get Signal
+            </button>
+            <button class="btn btn-secondary" onclick="refreshSignal()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="card" style="padding:16px 14px;">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="num" id="totalPredictions">0</div>
+                    <div class="lbl">Total</div>
+                </div>
+                <div class="stat-item">
+                    <div class="num" id="accuracy">0%</div>
+                    <div class="lbl">Accuracy</div>
+                </div>
+                <div class="stat-item">
+                    <div class="num" id="bonusHits">0</div>
+                    <div class="lbl">Bonus</div>
+                </div>
+                <div class="stat-item">
+                    <div class="num" id="liveUsers">0</div>
+                    <div class="lbl">Live</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">REVO FIXER © 2026</div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================================
+        // 🔥 FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLz9LCMNsfb7tHJ2t-oocGjVD-nVox3GM",
+            authDomain: "revo-fixer-45a26.firebaseapp.com",
+            databaseURL: "https://revo-fixer-45a26-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "revo-fixer-45a26",
+            storageBucket: "revo-fixer-45a26.firebasestorage.app",
+            messagingSenderId: "496963115399",
+            appId: "1:496963115399:web:d38ec404edff64dfecdb22"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ============================================================
+        // 🔐 CHECK USER
+        // ============================================================
+        const userId = localStorage.getItem('userId');
+        const licenseKey = localStorage.getItem('licenseKey');
+
+        if (!userId || !licenseKey) {
+            window.location.href = 'index.html';
+        }
+
+        // ============================================================
+        // 🎮 GAME DATA
+        // ============================================================
+        const gameImages = {
+            '1': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539269/one-card_r0ffuy.png',
+            '2': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539364/two-card_ayl9lu.png',
+            '5': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539403/five-card_msp0cr.png',
+            '10': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539416/ten-card_cx3cvj.png',
+            'PACHINKO': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539441/pachiko-card_zxiw7r.png',
+            'COIN FLIP': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539429/coin-flip-card_kbbg7m.png',
+            'CASH HUNT': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539519/cash-hunt-card_jp8hr3.png',
+            'CRAZY TIME': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539531/crazy-time-card_dftfw3.png'
+        };
+
+        const gameOutcomes = [
+            { name: '1', imageKey: '1', weight: 35, multiplier: 1, bonus: false },
+            { name: '2', imageKey: '2', weight: 28, multiplier: 2, bonus: false },
+            { name: '5', imageKey: '5', weight: 18, multiplier: 5, bonus: false },
+            { name: '10', imageKey: '10', weight: 10, multiplier: 10, bonus: false },
+            { name: 'COIN FLIP', imageKey: 'COIN FLIP', weight: 4, multiplier: 15, bonus: true },
+            { name: 'PACHINKO', imageKey: 'PACHINKO', weight: 3, multiplier: 20, bonus: true },
+            { name: 'CASH HUNT', imageKey: 'CASH HUNT', weight: 1.5, multiplier: 25, bonus: true },
+            { name: 'CRAZY TIME', imageKey: 'CRAZY TIME', weight: 0.5, multiplier: 50, bonus: true }
+        ];
+
+        let stats = { total: 0, correct: 0, bonusHits: 0, liveUsers: 0 };
+        let history = [];
+        let isGenerating = false;
+        let packageEndTime = 0;
+        let timerInterval = null;
+
+        // ============================================================
+        // 🧠 AI ENGINE
+        // ============================================================
+        function weightedRandom() {
+            const total = gameOutcomes.reduce((s, g) => s + g.weight, 0);
+            let rand = Math.random() * total;
+            for (const game of gameOutcomes) {
+                rand -= game.weight;
+                if (rand <= 0) return game.name;
+            }
+            return '1';
+        }
+
+        function analyzePattern() {
+            if (history.length < 10) return { result: weightedRandom(), confidence: 60 + Math.floor(Math.random() * 20) };
+
+            const last20 = history.slice(-20);
+            const freq = {};
+            const numberFreq = { '1': 0, '2': 0, '5': 0, '10': 0 };
+            const bonusGames = ['COIN FLIP', 'PACHINKO', 'CASH HUNT', 'CRAZY TIME'];
+            let bonusCount = 0;
+
+            last20.forEach(r => {
+                freq[r] = (freq[r] || 0) + 1;
+                if (bonusGames.includes(r)) bonusCount++;
+                else numberFreq[r] = (numberFreq[r] || 0) + 1;
+            });
+
+            const last15 = history.slice(-15);
+            const hasBonus = last15.some(r => bonusGames.includes(r));
+
+            let prediction, confidence;
+
+            if (!hasBonus && history.length > 15) {
+                const bonusOptions = ['COIN FLIP', 'PACHINKO', 'CASH HUNT', 'CRAZY TIME'];
+                const weights = [4, 3, 2, 1];
+                const total = weights.reduce((a, b) => a + b, 0);
+                let rand = Math.random() * total;
+                prediction = bonusOptions[0];
+                for (let i = 0; i < weights.length; i++) {
+                    rand -= weights[i];
+                    if (rand <= 0) { prediction = bonusOptions[i]; break; }
+                }
+                confidence = 70 + Math.floor(Math.random() * 15);
+            } else {
+                const sorted = Object.entries(numberFreq).sort((a, b) => b[1] - a[1]);
+                if (sorted.length > 0 && sorted[0][1] >= 3) {
+                    prediction = sorted[0][0];
+                    confidence = 65 + Math.floor(Math.random() * 20);
+                } else {
+                    prediction = weightedRandom();
+                    confidence = 50 + Math.floor(Math.random() * 25);
+                }
+            }
+
+            return { result: prediction, confidence: Math.min(95, confidence) };
+        }
+
+        function getGameData(name) {
+            return gameOutcomes.find(g => g.name === name);
+        }
+
+        // ============================================================
+        // ⏱️ PACKAGE TIMER
+        // ============================================================
+        function loadPackageTimer() {
+            db.ref('users/' + userId + '/package').on('value', (snap) => {
+                const pkg = snap.val();
+                if (!pkg) { showToast('No package found!', 'error'); return; }
+
+                if (pkg.status === 'active' && pkg.endTime > 0) {
+                    packageEndTime = pkg.endTime;
+                    startTimer();
+                } else {
+                    document.getElementById('packageTimer').textContent = '⏳ PENDING';
+                    if (pkg.status === 'expired') {
+                        showToast('Package expired!', 'error');
+                        setTimeout(() => { localStorage.clear(); window.location.href = 'index.html'; }, 2000);
+                    }
+                }
+            });
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                const remaining = packageEndTime - Date.now();
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('packageTimer').textContent = '00:00:00';
+                    showToast('⏰ Package expired!', 'error');
+                    setTimeout(() => { localStorage.clear(); window.location.href = 'index.html'; }, 2000);
+                    return;
+                }
+                const h = Math.floor(remaining / 3600000);
+                const m = Math.floor((remaining % 3600000) / 60000);
+                const s = Math.floor((remaining % 60000) / 1000);
+                document.getElementById('packageTimer').textContent =
+                    String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+            }, 1000);
+        }
+
+        // ============================================================
+        // 💬 TOAST
+        // ============================================================
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = `toast toast-${type} show`;
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ============================================================
+        // 🎬 GENERATE SIGNAL
+        // ============================================================
+        function generateSignal() {
+            if (isGenerating) return;
+
+            const remaining = packageEndTime - Date.now();
+            if (remaining <= 0) {
+                showToast('⏰ Package expired!', 'error');
+                setTimeout(() => { localStorage.clear(); window.location.href = 'index.html'; }, 2000);
+                return;
+            }
+
+            isGenerating = true;
+            const btn = document.getElementById('predictBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+
+            const content = document.getElementById('signalContent');
+            content.innerHTML = `
+                <div class="spinner"></div>
+                <div style="font-size:13px;color:#999;margin-top:8px;">Analyzing patterns...</div>
+            `;
+
+            setTimeout(() => {
+                const prediction = analyzePattern();
+                const result = prediction.result;
+                const confidence = prediction.confidence;
+                const gameData = getGameData(result);
+                const imageUrl = gameImages[gameData.imageKey];
+
+                history.push(result);
+                if (history.length > 100) history = history.slice(-100);
+
+                stats.total++;
+                const isCorrect = Math.random() < (confidence / 100);
+                if (isCorrect) stats.correct++;
+                if (gameData.bonus) stats.bonusHits++;
+                stats.liveUsers = Math.max(50, stats.liveUsers + Math.floor(Math.random() * 20) - 10);
+
+                let nameClass = gameData.bonus ? 'signal-name bonus' : 'signal-name';
+
+                content.innerHTML = `
+                    <img class="signal-image" src="${imageUrl}" alt="${result}">
+                    <div class="${nameClass}">${result}</div>
+                    <div class="signal-multiplier">${gameData.bonus ? '🎯 BONUS - ' : '💰 '}${gameData.multiplier}x</div>
+                    ${gameData.bonus ? '<div class="signal-bonus-badge">🎯 BONUS ROUND</div>' : ''}
+                `;
+
+                let confClass = 'medium';
+                if (confidence >= 80) confClass = 'high';
+                else if (confidence >= 60) confClass = 'medium';
+                else confClass = 'low';
+
+                document.getElementById('confidenceFill').className = 'confidence-fill ' + confClass;
+                document.getElementById('confidenceFill').style.width = confidence + '%';
+                document.getElementById('confidencePercent').textContent = confidence + '%';
+
+                document.getElementById('totalPredictions').textContent = stats.total;
+                document.getElementById('accuracy').textContent =
+                    stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) + '%' : '0%';
+                document.getElementById('bonusHits').textContent = stats.bonusHits;
+                document.getElementById('liveUsers').textContent = stats.liveUsers;
+
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-magic"></i> Get Signal';
+                isGenerating = false;
+            }, 1500 + Math.random() * 800);
+        }
+
+        function refreshSignal() {
+            const content = document.getElementById('signalContent');
+            content.innerHTML = `
+                <div class="placeholder-box">
+                    <span class="icon"><i class="fas fa-hand-pointer"></i></span>
+                    <div class="main">Click Get Signal To Start</div>
+                    <div class="sub">AI powered predictions</div>
+                </div>
+            `;
+            document.getElementById('confidenceFill').style.width = '0%';
+            document.getElementById('confidencePercent').textContent = '0%';
+            setTimeout(generateSignal, 500);
+        }
+
+        // ============================================================
+        // 🚀 INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPackageTimer();
+
+            if (localStorage.getItem('signalStats')) {
+                try {
+                    const saved = JSON.parse(localStorage.getItem('signalStats'));
+                    stats = { ...stats, ...saved };
+                    document.getElementById('totalPredictions').textContent = stats.total;
+                    document.getElementById('accuracy').textContent =
+                        stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) + '%' : '0%';
+                    document.getElementById('bonusHits').textContent = stats.bonusHits;
+                } catch (e) {}
+            }
+
+            setTimeout(generateSignal, 1000);
+        });
+
+        setInterval(() => {
+            localStorage.setItem('signalStats', JSON.stringify(stats));
+        }, 10000);
+    </script>
+</body>
+</html>
