@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Wallet Transfer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #f0ebe3;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            color: #1e1e2a;
+            position: relative;
+            overflow-x: hidden;
+            padding: 16px;
+        }
+
+        .bg-effect {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse at 20% 50%, rgba(111, 137, 97, 0.04), transparent 50%),
+                        radial-gradient(ellipse at 80% 30%, rgba(194, 158, 99, 0.03), transparent 40%),
+                        radial-gradient(ellipse at 50% 80%, rgba(111, 137, 97, 0.02), transparent 30%);
+            animation: bgFloat 20s ease-in-out infinite;
+        }
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            33% { transform: translate(2%, -2%) rotate(2deg) scale(1.02); }
+            66% { transform: translate(-1%, 1%) rotate(-1deg) scale(0.98); }
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.15;
+            animation: orbFloat 25s ease-in-out infinite;
+        }
+        .orb-1 { width: 400px; height: 400px; background: #6F8961; top: -100px; right: -100px; animation-delay: 0s; }
+        .orb-2 { width: 300px; height: 300px; background: #C29E63; bottom: -80px; left: -80px; animation-delay: -8s; }
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(40px, -30px) scale(1.1); }
+            66% { transform: translate(-30px, 20px) scale(0.9); }
+        }
+
+        .wrap { position: relative; z-index: 1; max-width: 420px; margin: 0 auto; padding: 10px 0 30px; }
+
+        /* ============================================================
+                   ANIMATIONS
+                   ============================================================ */
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(25px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes countUp { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        @keyframes btnRipple { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+        @keyframes btnPop { 0% { transform: scale(1); } 50% { transform: scale(0.95); } 100% { transform: scale(1); } }
+        @keyframes spinLoading { to { transform: rotate(360deg); } }
+
+        /* ============================================================
+                   HEADER
+                   ============================================================ */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            animation: slideDown 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e1e2a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header h1 i { color: #6F8961; font-size: 22px; }
+        .header .back-btn {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #888;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .header .back-btn:hover {
+            border-color: rgba(194, 158, 99, 0.15);
+            color: #1e1e2a;
+            background: rgba(255, 255, 255, 0.7);
+            transform: translateY(-2px);
+        }
+
+        /* ============================================================
+                   CARD
+                   ============================================================ */
+        .card {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 20px;
+            padding: 20px 18px;
+            margin: 14px 0;
+            transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+            animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover {
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04);
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        /* ============================================================
+                   BALANCE BOX
+                   ============================================================ */
+        .balance-box {
+            text-align: center;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            transition: all 0.4s ease;
+        }
+        .balance-box:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .balance-box .lbl {
+            font-size: 9px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 500;
+        }
+        .balance-box .amt {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e1e2a;
+            margin-top: 4px;
+            transition: all 0.4s ease;
+            animation: countUp 0.6s ease;
+        }
+        .balance-box:hover .amt { color: #6F8961; }
+
+        /* ============================================================
+                   CONNECTED INFO
+                   ============================================================ */
+        .connected-box {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+        }
+        .connected-box .title {
+            font-size: 10px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .connected-box .title i {
+            color: #6F8961;
+            margin-right: 4px;
+        }
+        .connected-box .info {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .connected-box .info i {
+            color: #34d399;
+            font-size: 14px;
+        }
+        .connected-box .empty {
+            font-size: 12px;
+            color: #bbb;
+            text-align: center;
+            padding: 12px;
+        }
+        .connected-box .empty i {
+            display: block;
+            font-size: 24px;
+            margin-bottom: 6px;
+            color: #ccc;
+        }
+
+        /* ============================================================
+                   TRANSFER BUTTON
+                   ============================================================ */
+        .btn-transfer {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            background: linear-gradient(135deg, #6F8961, #C29E63);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+        .btn-transfer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+            transition: left 0.6s ease;
+        }
+        .btn-transfer:hover::before { left: 100%; }
+        .btn-transfer:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(111, 137, 97, 0.15);
+        }
+        .btn-transfer:active { transform: scale(0.97); transition-duration: 0.1s; }
+        .btn-transfer:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-transfer .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spinLoading 0.7s linear infinite;
+            margin: 0 auto;
+        }
+        .btn-transfer.loading .btn-text { display: none; }
+        .btn-transfer.loading .spinner { display: block; }
+
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            animation: btnRipple 0.6s ease-out forwards;
+            pointer-events: none;
+            width: 40px;
+            height: 40px;
+            transform: translate(-50%, -50%);
+        }
+        .btn-click { animation: btnPop 0.3s cubic-bezier(0.22, 1, 0.36, 1); }
+
+        /* ============================================================
+                   NOTIFICATION BOX
+                   ============================================================ */
+        .notif-box {
+            padding: 14px 16px;
+            border-radius: 14px;
+            font-size: 12px;
+            font-weight: 500;
+            text-align: center;
+            margin-top: 14px;
+            display: none;
+            animation: fadeUp 0.4s ease;
+        }
+        .notif-box.show { display: block; }
+        .notif-box.success {
+            background: rgba(52, 211, 153, 0.08);
+            border: 1px solid rgba(52, 211, 153, 0.1);
+            color: #34d399;
+        }
+        .notif-box.error {
+            background: rgba(248, 113, 113, 0.08);
+            border: 1px solid rgba(248, 113, 113, 0.1);
+            color: #f87171;
+        }
+        .notif-box.warning {
+            background: rgba(245, 158, 11, 0.08);
+            border: 1px solid rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        /* ============================================================
+                   FOOTER
+                   ============================================================ */
+        .footer {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 8px;
+            color: #ccc;
+            letter-spacing: 3px;
+        }
+
+        ::-webkit-scrollbar { width: 0; background: transparent; }
+
+        @media (max-width: 400px) {
+            .wrap { padding: 6px 0; }
+            .card { padding: 16px 14px; }
+            .balance-box .amt { font-size: 26px; }
+            .header h1 { font-size: 17px; }
+            .connected-box .info { font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-effect"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="wrap">
+
+        <!-- ===== HEADER ===== -->
+        <div class="header">
+            <h1><i class="fas fa-exchange-alt"></i>Wallet Transfer</h1>
+            <a href="dashboard.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back</a>
+        </div>
+
+        <!-- ===== BALANCE ===== -->
+        <div class="card">
+            <div class="balance-box">
+                <div class="lbl"><i class="fas fa-wallet" style="color:#6F8961;margin-right:4px;"></i>Available Balance</div>
+                <div class="amt" id="walletBalance">₹0</div>
+            </div>
+        </div>
+
+        <!-- ===== CONNECTED ACCOUNT ===== -->
+        <div class="card">
+            <div class="connected-box">
+                <div class="title"><i class="fas fa-link"></i>Connected Account</div>
+                <div id="connectedInfo">
+                    <div class="empty">
+                        <i class="fas fa-user-slash"></i>
+                        No account connected
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TRANSFER BUTTON ===== -->
+        <button class="btn-transfer" id="transferBtn" onclick="handleClick(event, this); handleTransfer()">
+            <span class="btn-text"><i class="fas fa-arrow-right"></i> Transfer Balance</span>
+            <span class="spinner"></span>
+        </button>
+
+        <!-- ===== NOTIFICATION ===== -->
+        <div class="notif-box" id="notifBox"></div>
+
+        <div class="footer">REVO FIXER © 2026</div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 🔥 FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLz9LCMNsfb7tHJ2t-oocGjVD-nVox3GM",
+            authDomain: "revo-fixer-45a26.firebaseapp.com",
+            databaseURL: "https://revo-fixer-45a26-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "revo-fixer-45a26",
+            storageBucket: "revo-fixer-45a26.firebasestorage.app",
+            messagingSenderId: "496963115399",
+            appId: "1:496963115399:web:d38ec404edff64dfecdb22"
+        };
+
+        // ============================================================
+        // 🚀 FIREBASE INITIALIZE
+        // ============================================================
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let userBalance = 0;
+        let transferStatus = 'success';
+
+        // ============================================================
+        // 🎬 CLICK HANDLER
+        // ============================================================
+        function handleClick(event, element) {
+            const rect = element.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            element.appendChild(ripple);
+
+            setTimeout(() => { ripple.remove(); }, 600);
+
+            element.classList.remove('btn-click');
+            void element.offsetWidth;
+            element.classList.add('btn-click');
+            setTimeout(() => { element.classList.remove('btn-click'); }, 300);
+        }
+
+        // ============================================================
+        // 👤 LOAD USER DATA
+        // ============================================================
+        function loadUserData() {
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            db.ref('users/' + userId).on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    userBalance = data.balance || 0;
+                    document.getElementById('walletBalance').textContent = '₹' + userBalance.toLocaleString();
+
+                    // Load connections
+                    loadConnections(data.connections);
+                }
+            });
+        }
+
+        // ============================================================
+        // 🔗 LOAD CONNECTIONS
+        // ============================================================
+        function loadConnections(connections) {
+            const container = document.getElementById('connectedInfo');
+
+            if (!connections || (!connections.username && !connections.bettingLink)) {
+                container.innerHTML = `
+                    <div class="empty">
+                        <i class="fas fa-user-slash"></i>
+                        No account connected
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            if (connections.username) {
+                html += `
+                    <div class="info">
+                        <i class="fas fa-user-check"></i>
+                        <span>${connections.username}</span>
+                    </div>
+                `;
+            }
+            if (connections.bettingLink) {
+                html += `
+                    <div class="info">
+                        <i class="fas fa-globe"></i>
+                        <span>${connections.bettingLink}</span>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        // ============================================================
+        // 📥 LOAD TRANSFER SETTINGS
+        // ============================================================
+        function loadTransferSettings() {
+            db.ref('appSettings/walletTransfer').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    transferStatus = snapshot.val().status || 'success';
+                }
+            });
+        }
+
+        // ============================================================
+        // 🔄 HANDLE TRANSFER
+        // ============================================================
+        async function handleTransfer() {
+            const btn = document.getElementById('transferBtn');
+            const notif = document.getElementById('notifBox');
+
+            // Hide previous notification
+            notif.classList.remove('show', 'success', 'error', 'warning');
+
+            // Check if user is logged in
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
+                notif.textContent = '⚠️ Please login first!';
+                notif.className = 'notif-box show error';
+                setTimeout(() => window.location.href = 'index.html', 1500);
+                return;
+            }
+
+            // Check if account is connected
+            const connSnap = await db.ref(`users/${userId}/connections`).once('value');
+            const connections = connSnap.val();
+            if (!connections || (!connections.username && !connections.bettingLink)) {
+                notif.textContent = '⚠️ No account connected. Please connect your profile first.';
+                notif.className = 'notif-box show warning';
+                return;
+            }
+
+            // Check balance
+            if (userBalance <= 0) {
+                notif.textContent = '⚠️ Insufficient balance. Please add funds first.';
+                notif.className = 'notif-box show warning';
+                return;
+            }
+
+            // Check transfer status
+            if (transferStatus === 'freeze') {
+                notif.textContent = '❄️ Transfers are currently frozen. Contact support.';
+                notif.className = 'notif-box show error';
+                return;
+            }
+
+            if (transferStatus === 'insufficient') {
+                notif.textContent = '⚠️ Minimum balance required: ₹500';
+                notif.className = 'notif-box show warning';
+                return;
+            }
+
+            // Confirm transfer
+            if (!confirm(`Are you sure you want to transfer ₹${userBalance.toLocaleString()} from your wallet to your connected account?`)) {
+                return;
+            }
+
+            // Start loading
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                // Create transfer request
+                await db.ref('transferRequests').push({
+                    userId: userId,
+                    username: connections.username || 'User',
+                    amount: userBalance,
+                    status: 'pending',
+                    createdAt: Date.now()
+                });
+
+                // Log activity
+                await db.ref(`users/${userId}/activity`).push({
+                    text: `💰 Wallet transfer requested: ₹${userBalance.toLocaleString()}`,
+                    time: Date.now()
+                });
+
+                // 🔔 Admin notification
+                await db.ref('adminNotifications').push({
+                    userId: userId,
+                    userName: connections.username || 'User',
+                    type: 'withdraw_request',
+                    title: '💵 New Withdraw Request',
+                    message: `${connections.username || 'User'} requested withdraw of ₹${userBalance.toLocaleString()}`,
+                    read: false,
+                    timestamp: Date.now()
+                });
+
+                // Success
+                btn.classList.remove('loading');
+                btn.disabled = false;
+
+                notif.textContent = '✅ Transfer request submitted! Admin will process it within 24 hours.';
+                notif.className = 'notif-box show success';
+
+                // Update balance display (show zero)
+                document.getElementById('walletBalance').textContent = '₹0';
+
+                // Reload user data after 2 seconds
+                setTimeout(() => {
+                    loadUserData();
+                }, 2000);
+
+                // Auto hide notification after 5 seconds
+                setTimeout(() => {
+                    notif.classList.remove('show');
+                }, 5000);
+
+            } catch (error) {
+                console.error('Transfer error:', error);
+                btn.classList.remove('loading');
+                btn.disabled = false;
+
+                notif.textContent = '❌ Error: ' + error.message;
+                notif.className = 'notif-box show error';
+            }
+        }
+
+        // ============================================================
+        // 🚀 INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserData();
+            loadTransferSettings();
+            console.log('💳 Wallet Transfer page loaded!');
+        });
+    </script>
+
+</body>
+</html>
