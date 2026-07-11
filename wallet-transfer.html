@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Wallet Transfer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background: #f0ebe3;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            color: #1e1e2a;
+            position: relative;
+            overflow-x: hidden;
+            padding: 16px;
+        }
+
+        .bg-effect {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse at 20% 50%, rgba(111, 137, 97, 0.04), transparent 50%),
+                        radial-gradient(ellipse at 80% 30%, rgba(194, 158, 99, 0.03), transparent 40%),
+                        radial-gradient(ellipse at 50% 80%, rgba(111, 137, 97, 0.02), transparent 30%);
+            animation: bgFloat 20s ease-in-out infinite;
+        }
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            33% { transform: translate(2%, -2%) rotate(2deg) scale(1.02); }
+            66% { transform: translate(-1%, 1%) rotate(-1deg) scale(0.98); }
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.15;
+            animation: orbFloat 25s ease-in-out infinite;
+        }
+        .orb-1 { width: 400px; height: 400px; background: #6F8961; top: -100px; right: -100px; animation-delay: 0s; }
+        .orb-2 { width: 300px; height: 300px; background: #C29E63; bottom: -80px; left: -80px; animation-delay: -8s; }
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(40px, -30px) scale(1.1); }
+            66% { transform: translate(-30px, 20px) scale(0.9); }
+        }
+
+        .wrap { position: relative; z-index: 1; max-width: 420px; margin: 0 auto; padding: 10px 0 30px; }
+
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(25px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes btnRipple { 0% { transform: scale(0); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+        @keyframes btnPop { 0% { transform: scale(1); } 50% { transform: scale(0.95); } 100% { transform: scale(1); } }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            animation: slideDown 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.4);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #888;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .back-btn:hover { border-color: rgba(194,158,99,0.15); color: #1e1e2a; background: rgba(255,255,255,0.7); }
+        .header h1 { font-size: 20px; font-weight: 700; color: #1e1e2a; }
+        .header h1 span { color: #C29E63; }
+
+        .card {
+            background: rgba(255,255,255,0.45);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 20px;
+            padding: 24px 20px;
+            margin: 16px 0;
+            animation: fadeUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+        }
+
+        .balance-box {
+            text-align: center;
+            padding: 10px 0;
+        }
+        .balance-label {
+            font-size: 10px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 500;
+        }
+        .balance-amount {
+            font-size: 36px;
+            font-weight: 800;
+            color: #1e1e2a;
+            margin-top: 4px;
+        }
+        .balance-amount span { color: #6F8961; }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #999;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+        .section-title i { color: #6F8961; margin-right: 6px; }
+
+        .connected-box {
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+        }
+        .connected-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+        .connected-row:last-child { border-bottom: none; }
+        .connected-row .label { color: #999; }
+        .connected-row .value { color: #1e1e2a; font-weight: 500; word-break: break-all; text-align: right; max-width: 70%; }
+        .no-data { color: #bbb; font-size: 12px; text-align: center; padding: 8px 0; }
+
+        .transfer-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.4s ease;
+            background: linear-gradient(135deg, #6F8961, #C29E63);
+            color: #fff;
+            box-shadow: 0 6px 20px rgba(111,137,97,0.15);
+        }
+        .transfer-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(111,137,97,0.25); }
+        .transfer-btn:active { transform: scale(0.97); }
+        .transfer-btn:disabled {
+            background: #ccc;
+            color: #888;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            padding: 14px 24px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+            max-width: 90%;
+            text-align: center;
+            background: #ffffff;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast-success { color: #6F8961; border-color: rgba(111,137,97,0.1); }
+        .toast-error { color: #dc3545; border-color: rgba(220,53,69,0.1); }
+        .toast-warning { color: #f59e0b; border-color: rgba(245,158,11,0.1); }
+
+        .footer { text-align: center; margin-top: 18px; font-size: 8px; color: #ccc; letter-spacing: 3px; }
+
+        /* ===== STATUS MESSAGE ===== */
+        .status-box {
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 12px;
+            display: none;
+        }
+        .status-box.show { display: block; }
+        .status-box.success {
+            background: rgba(52,211,153,0.08);
+            border: 1px solid rgba(52,211,153,0.1);
+            color: #34d399;
+        }
+        .status-box.freeze {
+            background: rgba(68,138,255,0.08);
+            border: 1px solid rgba(68,138,255,0.1);
+            color: #4a9eff;
+        }
+        .status-box.insufficient {
+            background: rgba(245,158,11,0.08);
+            border: 1px solid rgba(245,158,11,0.1);
+            color: #f59e0b;
+        }
+        .status-box.disabled {
+            background: rgba(220,53,69,0.08);
+            border: 1px solid rgba(220,53,69,0.1);
+            color: #dc3545;
+        }
+        .status-box .icon { margin-right: 8px; }
+
+        @media (max-width: 400px) {
+            .balance-amount { font-size: 28px; }
+            .header h1 { font-size: 17px; }
+            .card { padding: 18px 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-effect"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="wrap">
+
+        <div class="header">
+            <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+            <h1><span>Wallet</span> Transfer</h1>
+        </div>
+
+        <!-- Balance Card -->
+        <div class="card">
+            <div class="balance-box">
+                <div class="balance-label"><i class="fas fa-wallet" style="color:#6F8961;margin-right:4px;"></i>Available Balance</div>
+                <div class="balance-amount" id="displayBalance">₹0</div>
+            </div>
+        </div>
+
+        <!-- Connected Account -->
+        <div class="card">
+            <div class="section-title"><i class="fas fa-link"></i> Connected Account</div>
+            <div class="connected-box" id="connectedBox">
+                <div class="no-data">No account connected</div>
+            </div>
+        </div>
+
+        <!-- Transfer Button -->
+        <button class="transfer-btn" id="transferBtn" onclick="handleTransfer()">
+            <i class="fas fa-exchange-alt"></i> Transfer Balance
+        </button>
+
+        <!-- Status Box (Shows after button click) -->
+        <div class="status-box" id="statusBox"></div>
+
+        <div class="footer">REVO FIXER © 2026</div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================================
+        // 🔥 FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLz9LCMNsfb7tHJ2t-oocGjVD-nVox3GM",
+            authDomain: "revo-fixer-45a26.firebaseapp.com",
+            databaseURL: "https://revo-fixer-45a26-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "revo-fixer-45a26",
+            storageBucket: "revo-fixer-45a26.firebasestorage.app",
+            messagingSenderId: "496963115399",
+            appId: "1:496963115399:web:d38ec404edff64dfecdb22"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ============================================================
+        // 👤 CHECK USER
+        // ============================================================
+        const userId = localStorage.getItem('userId');
+        const licenseKey = localStorage.getItem('licenseKey');
+
+        if (!userId || !licenseKey) {
+            window.location.href = 'index.html';
+        }
+
+        let userBalance = 0;
+        let transferSettings = {
+            status: 'success',
+            minBalance: 500,
+            message: 'Contact admin for transfer',
+            successMessage: '✅ Transfer successful! Amount will be processed within 24 hours.'
+        };
+
+        function goBack() {
+            window.location.href = 'dashboard.html';
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = `toast toast-${type} show`;
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ============================================================
+        // 📥 LOAD WALLET TRANSFER SETTINGS (REAL-TIME)
+        // ============================================================
+        function loadTransferSettings() {
+            db.ref('appSettings/walletTransfer').on('value', (snap) => {
+                const data = snap.val();
+                if (data) {
+                    transferSettings.status = data.status || 'success';
+                    transferSettings.minBalance = data.minBalance || 500;
+                    transferSettings.message = data.message || 'Contact admin for transfer';
+                    transferSettings.successMessage = data.successMessage || '✅ Transfer successful! Amount will be processed within 24 hours.';
+                    console.log('🔄 Transfer settings updated:', transferSettings);
+                }
+            });
+        }
+
+        // ============================================================
+        // 💰 LOAD USER BALANCE
+        // ============================================================
+        function loadUserBalance() {
+            db.ref('users/' + userId + '/balance').on('value', (snapshot) => {
+                userBalance = snapshot.val() || 0;
+                document.getElementById('displayBalance').textContent = '₹' + userBalance.toLocaleString();
+            });
+        }
+
+        // ============================================================
+        // 🔗 LOAD CONNECTIONS
+        // ============================================================
+        function loadConnections() {
+            db.ref('users/' + userId + '/connections').on('value', (snapshot) => {
+                const data = snapshot.val();
+                const box = document.getElementById('connectedBox');
+                
+                if (!data || (!data.username && !data.bettingLink)) {
+                    box.innerHTML = '<div class="no-data">No account connected</div>';
+                    return;
+                }
+                
+                let html = '';
+                if (data.username) {
+                    html += `<div class="connected-row">
+                        <span class="label">Username</span>
+                        <span class="value">${escapeHtml(data.username)}</span>
+                    </div>`;
+                }
+                if (data.bettingLink) {
+                    html += `<div class="connected-row">
+                        <span class="label">Betting Link</span>
+                        <span class="value"><a href="${data.bettingLink}" target="_blank" style="color:#6F8961;text-decoration:none;">${data.bettingLink}</a></span>
+                    </div>`;
+                }
+                box.innerHTML = html;
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // ============================================================
+        // 💳 HANDLE TRANSFER
+        // ============================================================
+        function handleTransfer() {
+            const btn = document.getElementById('transferBtn');
+            const statusBox = document.getElementById('statusBox');
+            
+            // Hide previous status
+            statusBox.classList.remove('show');
+            statusBox.className = 'status-box';
+
+            // Check if balance is zero or negative
+            if (userBalance <= 0) {
+                showToast('⚠️ Insufficient balance. Please add funds first.', 'warning');
+                return;
+            }
+
+            // Check transfer status
+            const status = transferSettings.status;
+
+            if (status === 'freeze') {
+                statusBox.className = 'status-box show freeze';
+                statusBox.innerHTML = `<span class="icon">❄️</span> Transfers are currently frozen. ${transferSettings.message}`;
+                return;
+            }
+
+            if (status === 'disabled') {
+                statusBox.className = 'status-box show disabled';
+                statusBox.innerHTML = `<span class="icon">🚫</span> ${transferSettings.message}`;
+                return;
+            }
+
+            if (status === 'insufficient') {
+                const minBal = transferSettings.minBalance || 500;
+                if (userBalance < minBal) {
+                    statusBox.className = 'status-box show insufficient';
+                    statusBox.innerHTML = `<span class="icon">⚠️</span> Minimum balance required: ₹${minBal.toLocaleString()}`;
+                    return;
+                }
+            }
+
+            // ✅ All checks passed - process transfer
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+            const transferData = {
+                userId: userId,
+                amount: userBalance,
+                method: 'wallet_transfer',
+                status: 'pending',
+                createdAt: Date.now(),
+                username: localStorage.getItem('username') || 'User',
+                licenseKey: licenseKey
+            };
+
+            db.ref('transferRequests').push(transferData)
+                .then(() => {
+                    db.ref('users/' + userId + '/activity').push({
+                        text: '💰 Wallet transfer requested - Amount: ₹' + userBalance.toLocaleString(),
+                        time: Date.now()
+                    });
+
+                    // Show success status
+                    statusBox.className = 'status-box show success';
+                    statusBox.innerHTML = `<span class="icon">✅</span> ${transferSettings.successMessage}`;
+
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-exchange-alt"></i> Transfer Balance';
+                    
+                    showToast('✅ Transfer request submitted!', 'success');
+                })
+                .catch((error) => {
+                    showToast('❌ Error: ' + error.message, 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-exchange-alt"></i> Transfer Balance';
+                });
+        }
+
+        // ============================================================
+        // 🚀 INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTransferSettings();
+            loadUserBalance();
+            loadConnections();
+        });
+    </script>
+
+</body>
+</html>
