@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background: #f0ebe3;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            color: #1e1e2a;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .bg-effect {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse at 20% 50%, rgba(111, 137, 97, 0.04), transparent 50%),
+                        radial-gradient(ellipse at 80% 30%, rgba(194, 158, 99, 0.03), transparent 40%),
+                        radial-gradient(ellipse at 50% 80%, rgba(111, 137, 97, 0.02), transparent 30%);
+            animation: bgFloat 20s ease-in-out infinite;
+        }
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            33% { transform: translate(2%, -2%) rotate(2deg) scale(1.02); }
+            66% { transform: translate(-1%, 1%) rotate(-1deg) scale(0.98); }
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.15;
+            animation: orbFloat 25s ease-in-out infinite;
+        }
+        .orb-1 { width: 400px; height: 400px; background: #6F8961; top: -100px; right: -100px; animation-delay: 0s; }
+        .orb-2 { width: 300px; height: 300px; background: #C29E63; bottom: -80px; left: -80px; animation-delay: -8s; }
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(40px, -30px) scale(1.1); }
+            66% { transform: translate(-30px, 20px) scale(0.9); }
+        }
+
+        .wrap { position: relative; z-index: 1; width: 100%; max-width: 400px; animation: fadeUp 0.7s ease; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(25px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+        .card {
+            background: rgba(255,255,255,0.45);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.25);
+            border-radius: 24px;
+            padding: 40px 30px;
+            transition: all 0.4s ease;
+        }
+        .card:hover { border-color: rgba(255,255,255,0.5); box-shadow: 0 12px 40px rgba(0,0,0,0.04); transform: translateY(-2px); }
+
+        .logo { text-align: center; margin-bottom: 28px; }
+        .logo .icon {
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, #6F8961, #C29E63);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+        .logo h1 { font-size: 22px; font-weight: 700; color: #1e1e2a; }
+        .logo h1 span { color: #C29E63; }
+        .logo p { font-size: 11px; color: #999; letter-spacing: 2px; margin-top: 4px; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block; font-size: 10px; font-weight: 600;
+            color: #999; text-transform: uppercase; letter-spacing: 1.5px;
+            margin-bottom: 6px;
+        }
+        .form-group input {
+            width: 100%; padding: 14px 16px;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            color: #1e1e2a; font-size: 14px; outline: none;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+        .form-group input:focus { border-color: rgba(194,158,99,0.2); background: rgba(255,255,255,0.4); }
+
+        .btn-login {
+            width: 100%; padding: 15px;
+            border: none; border-radius: 16px;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(135deg, #6F8961, #C29E63);
+            color: #fff;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+            transition: left 0.6s ease;
+        }
+        .btn-login:hover::before { left: 100%; }
+        .btn-login:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(111,137,97,0.15); }
+        .btn-login:active { transform: scale(0.97); }
+        .btn-login .spinner {
+            display: none;
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto;
+        }
+        .btn-login.loading .btn-text { display: none; }
+        .btn-login.loading .spinner { display: block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-msg {
+            font-size: 12px; color: #dc3545;
+            margin-top: 8px; display: none;
+            text-align: center;
+        }
+        .error-msg.show { display: block; animation: shake 0.5s ease; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        .hint { text-align: center; font-size: 11px; color: #999; margin-top: 12px; }
+        .hint i { color: #6F8961; }
+
+        .footer { text-align: center; margin-top: 18px; font-size: 8px; color: #ccc; letter-spacing: 3px; }
+
+        /* ===== FORCE UPDATE OVERLAY ===== */
+        #forceUpdateOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(10px);
+            z-index: 99999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+        #forceUpdateOverlay.show { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .force-update-box {
+            background: #fff;
+            border-radius: 24px;
+            padding: 35px 30px;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            animation: scaleIn 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .force-update-box .icon {
+            font-size: 52px;
+            color: #6F8961;
+            margin-bottom: 12px;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .force-update-box h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1e1e2a;
+            margin-bottom: 8px;
+        }
+        .force-update-box p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        .force-update-box .btn-update {
+            background: linear-gradient(135deg, #6F8961, #C29E63);
+            color: #fff;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .force-update-box .btn-update:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(111,137,97,0.2);
+        }
+        .force-update-box .btn-update i { margin-right: 8px; }
+        .force-update-box .version-info {
+            font-size: 10px;
+            color: #ccc;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 400px) { .card { padding: 28px 18px; } }
+    </style>
+</head>
+<body>
+
+    <div class="bg-effect"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="wrap">
+        <div class="card">
+            <div class="logo">
+                <div class="icon"><i class="fas fa-bolt"></i></div>
+                <h1>REVO <span>FIXER</span></h1>
+                <p>CRAZY TIME SIGNAL</p>
+            </div>
+
+            <div class="form-group">
+                <label>🔑 License Key</label>
+                <input type="text" id="licenseKey" placeholder="Enter your license key" autocomplete="off">
+            </div>
+
+            <div class="error-msg" id="errorMsg"></div>
+
+            <button class="btn-login" id="loginBtn" onclick="loginUser()">
+                <span class="btn-text"><i class="fas fa-lock-open"></i> Login</span>
+                <span class="spinner"></span>
+            </button>
+
+            <div class="hint">
+                <i class="fas fa-info-circle"></i> Enter your license key to access the app
+            </div>
+
+            <div class="footer">REVO FIXER © 2026</div>
+        </div>
+    </div>
+
+    <!-- ===== FORCE UPDATE OVERLAY ===== -->
+    <div id="forceUpdateOverlay">
+        <div class="force-update-box">
+            <div class="icon"><i class="fas fa-sync-alt"></i></div>
+            <h2>Update Required</h2>
+            <p id="forceUpdateMessage">New version available! Please update to continue.</p>
+            <button class="btn-update" onclick="handleForceUpdate()">
+                <i class="fas fa-download"></i> Update Now
+            </button>
+            <div class="version-info">Version 2.0.0 • Revo Fixer</div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 🔥 FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLz9LCMNsfb7tHJ2t-oocGjVD-nVox3GM",
+            authDomain: "revo-fixer-45a26.firebaseapp.com",
+            databaseURL: "https://revo-fixer-45a26-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "revo-fixer-45a26",
+            storageBucket: "revo-fixer-45a26.firebasestorage.app",
+            messagingSenderId: "496963115399",
+            appId: "1:496963115399:web:d38ec404edff64dfecdb22"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ============================================================
+        // 🔄 CHECK FORCE UPDATE ON PAGE LOAD
+        // ============================================================
+        function checkForceUpdate() {
+            db.ref('appSettings/forceUpdate').on('value', (snap) => {
+                const data = snap.val();
+                if (data && data.enabled === true) {
+                    const message = data.message || 'New version available! Please update to continue.';
+                    document.getElementById('forceUpdateMessage').textContent = message;
+                    document.getElementById('forceUpdateOverlay').classList.add('show');
+                } else {
+                    document.getElementById('forceUpdateOverlay').classList.remove('show');
+                }
+            });
+        }
+
+        function handleForceUpdate() {
+            // You can redirect to update page or play store
+            // For now, just show a message and reload
+            alert('📲 Please update to the latest version from the app store.');
+            // window.location.href = 'https://play.google.com/store/apps/details?id=your.app.id';
+            // Or just reload to re-check
+            window.location.reload();
+        }
+
+        // ============================================================
+        // 🔐 USER LOGIN
+        // ============================================================
+        async function loginUser() {
+            const key = document.getElementById('licenseKey').value.trim().toUpperCase();
+            const btn = document.getElementById('loginBtn');
+            const errorMsg = document.getElementById('errorMsg');
+
+            errorMsg.classList.remove('show');
+
+            if (!key) {
+                errorMsg.textContent = 'Please enter your license key';
+                errorMsg.classList.add('show');
+                return;
+            }
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                // Check in securityCodes
+                const snap = await db.ref('securityCodes/' + key).once('value');
+
+                if (!snap.exists()) {
+                    errorMsg.textContent = '❌ Invalid license key';
+                    errorMsg.classList.add('show');
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    return;
+                }
+
+                const data = snap.val();
+
+                // Check if banned
+                if (data.status === 'banned') {
+                    errorMsg.textContent = '❌ This license key is banned';
+                    errorMsg.classList.add('show');
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    return;
+                }
+
+                // Check if used count exceeded
+                const usedCount = data.usedCount || 0;
+                const maxUses = data.maxUses || 10;
+                if (usedCount >= maxUses) {
+                    errorMsg.textContent = '❌ License key expired (max ' + maxUses + ' uses)';
+                    errorMsg.classList.add('show');
+                    btn.classList.remove('loading');
+                    btn.disabled = false;
+                    return;
+                }
+
+                // Increment used count
+                await db.ref('securityCodes/' + key + '/usedCount').set(usedCount + 1);
+
+                // Get user ID from license or create new
+                let userId = data.userId;
+                if (!userId) {
+                    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+                    await db.ref('securityCodes/' + key + '/userId').set(userId);
+                }
+
+                // Create user in users node if not exists
+                const userSnap = await db.ref('users/' + userId).once('value');
+                if (!userSnap.exists()) {
+                    await db.ref('users/' + userId).set({
+                        username: 'User_' + userId.substring(0, 6),
+                        balance: 0,
+                        licenseKey: key,
+                        createdAt: Date.now(),
+                        lastLogin: Date.now(),
+                        package: {
+                            name: data.package || 'Package',
+                            hours: data.hours || 1,
+                            price: data.price || 0,
+                            status: data.status || 'approved'
+                        }
+                    });
+                } else {
+                    await db.ref('users/' + userId + '/lastLogin').set(Date.now());
+                    await db.ref('users/' + userId + '/licenseKey').set(key);
+                }
+
+                // Save to localStorage
+                localStorage.setItem('userId', userId);
+                localStorage.setItem('licenseKey', key);
+                localStorage.setItem('username', 'User_' + userId.substring(0, 6));
+
+                // ✅ Login success - redirect to dashboard
+                window.location.href = 'dashboard.html';
+
+            } catch (error) {
+                console.error('Login error:', error);
+                errorMsg.textContent = '⚠️ Connection error. Please try again.';
+                errorMsg.classList.add('show');
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        }
+
+        // Enter key support
+        document.getElementById('licenseKey').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') loginUser();
+        });
+
+        // ============================================================
+        // 🚀 INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for force update first
+            checkForceUpdate();
+        });
+    </script>
+
+</body>
+</html>
