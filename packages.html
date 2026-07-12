@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Revo Fixer | Premium Packages</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: #0a0b1e;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding-bottom: 30px;
+        }
+
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at 20% 30%, #1a1a3e, #0a0b1e);
+            z-index: -2;
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(60px);
+            z-index: -1;
+        }
+        .orb-1 { width: 300px; height: 300px; background: rgba(0,212,255,0.12); top: -100px; right: -100px; }
+        .orb-2 { width: 400px; height: 400px; background: rgba(102,126,234,0.08); bottom: -150px; left: -150px; }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 16px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-section {
+            text-align: center;
+            padding: 30px 16px 40px;
+        }
+        .hero-section h1 {
+            font-size: clamp(24px, 5vw, 40px);
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff 0%, #a0e9ff 50%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-section p {
+            color: rgba(255,255,255,0.5);
+            font-size: clamp(13px, 3vw, 15px);
+            max-width: 500px;
+            margin: 8px auto 0;
+        }
+
+        .discount-banner {
+            background: linear-gradient(135deg, rgba(255,165,2,0.15), rgba(255,71,87,0.08));
+            border: 1px solid rgba(255,165,2,0.2);
+            border-radius: 16px;
+            padding: 14px 18px;
+            margin-bottom: 24px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .discount-banner.show {
+            display: flex;
+        }
+        .discount-banner .left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .discount-banner .left i {
+            font-size: 24px;
+            color: #ffa502;
+        }
+        .discount-banner .left .text {
+            font-size: 14px;
+            color: #bcc6e0;
+        }
+        .discount-banner .left .text strong {
+            color: #ffa502;
+            font-size: 18px;
+        }
+        .discount-banner .badge {
+            background: linear-gradient(135deg, #ffa502, #ea580c);
+            padding: 4px 16px;
+            border-radius: 30px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 14px;
+            left: 14px;
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 40px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 100;
+            transition: all 0.2s;
+        }
+        .back-btn:active {
+            transform: scale(0.95);
+        }
+
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 360px));
+            gap: 20px;
+            justify-content: center;
+            padding: 10px 0 40px;
+        }
+
+        .package-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 28px;
+            padding: 24px 20px;
+            transition: all 0.25s ease;
+            position: relative;
+            cursor: pointer;
+        }
+        .package-card:active {
+            transform: scale(0.97);
+        }
+
+        .popular-ribbon {
+            position: absolute;
+            top: 0;
+            right: 20px;
+            background: linear-gradient(135deg, #f59e0b, #ea580c);
+            padding: 6px 16px;
+            border-radius: 0 0 16px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .package-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, rgba(0,212,255,0.12), rgba(0,102,255,0.08));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+        }
+        .package-icon i {
+            font-size: 22px;
+            color: #00d4ff;
+        }
+
+        .package-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+            letter-spacing: -0.3px;
+        }
+        .package-desc {
+            color: rgba(255,255,255,0.45);
+            font-size: 12px;
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .price-section {
+            margin: 16px 0;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding-top: 16px;
+        }
+
+        .price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .price-amount {
+            font-size: 34px;
+            font-weight: 800;
+            color: #00d4ff;
+            letter-spacing: -1px;
+        }
+        .price-amount.discounted {
+            color: #ffa502;
+        }
+        .price-original {
+            font-size: 18px;
+            color: rgba(255,255,255,0.3);
+            text-decoration: line-through;
+        }
+        .price-unit {
+            color: rgba(255,255,255,0.4);
+            font-size: 13px;
+        }
+        .price-note {
+            color: rgba(255,255,255,0.35);
+            font-size: 10px;
+            margin-top: 4px;
+        }
+
+        .discount-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: linear-gradient(135deg, #ffa502, #ea580c);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #fff;
+            display: none;
+            animation: pulseBadge 2s infinite;
+        }
+        .discount-badge.show {
+            display: block;
+        }
+        @keyframes pulseBadge {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .features {
+            margin: 14px 0;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+        }
+        .feature-item i {
+            width: 16px;
+            font-size: 11px;
+            color: #22c55e;
+        }
+
+        .buy-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #00d4ff, #0066ff);
+            border: none;
+            border-radius: 60px;
+            padding: 12px 16px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 14px;
+        }
+        .buy-btn:active {
+            transform: scale(0.96);
+        }
+
+        .watermark {
+            position: fixed;
+            bottom: 12px;
+            right: 14px;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(8px);
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 10px;
+            z-index: 100;
+        }
+        .watermark a {
+            color: rgba(255,255,255,0.3);
+            text-decoration: none;
+        }
+
+        .toast {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 9999;
+            transition: all 0.3s;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
+        .toast-success { background: #00c853; color: #000; }
+        .toast-error { background: #ff1744; color: #fff; }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 60px 20px;
+            color: #8899cc;
+        }
+        .loading-spinner i {
+            font-size: 40px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        @media (max-width: 640px) {
+            .container { padding: 12px; }
+            .hero-section { padding: 70px 12px 20px; }
+            .package-card { padding: 18px 16px; }
+            .price-amount { font-size: 28px; }
+            .back-btn { top: 12px; left: 12px; padding: 8px 14px; font-size: 12px; }
+            .discount-banner { padding: 12px 14px; }
+            .discount-banner .left .text { font-size: 12px; }
+        }
+        @media (max-width: 480px) {
+            .hero-section h1 { font-size: 22px; }
+            .package-name { font-size: 17px; }
+            .packages-grid { gap: 14px; }
+            .price-amount { font-size: 24px; }
+            .price-original { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <a href="index.html" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back
+    </a>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="container">
+        <div class="hero-section">
+            <h1><i class="fas fa-crown"></i> Premium Packages</h1>
+            <p>Choose the perfect plan for your needs</p>
+        </div>
+
+        <!-- ===== DISCOUNT BANNER ===== -->
+        <div class="discount-banner" id="discountBanner">
+            <div class="left">
+                <i class="fas fa-tags"></i>
+                <div class="text">
+                    🎉 <strong id="discountText">30% OFF</strong> — Limited time offer!
+                </div>
+            </div>
+            <div class="badge" id="discountBadge">-30%</div>
+        </div>
+
+        <div class="packages-grid" id="packagesGrid">
+            <!-- Loading State -->
+            <div class="loading-spinner" id="loadingState">
+                <i class="fas fa-spinner fa-spin"></i>
+                Loading packages...
+            </div>
+        </div>
+    </div>
+
+    <div class="watermark">
+        <i class="fas fa-code"></i> Developer <a href="https://t.me/RevoAgent" target="_blank">@RevoAgent</a>
+    </div>
+
+    <script>
+        // ============================================================
+        // 🔥 FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLz9LCMNsfb7tHJ2t-oocGjVD-nVox3GM",
+            authDomain: "revo-fixer-45a26.firebaseapp.com",
+            databaseURL: "https://revo-fixer-45a26-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "revo-fixer-45a26",
+            storageBucket: "revo-fixer-45a26.firebasestorage.app",
+            messagingSenderId: "496963115399",
+            appId: "1:496963115399:web:d38ec404edff64dfecdb22"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ============================================================
+        // 📦 DEFAULT PACKAGES (যদি Firebase এ না থাকে)
+        // ============================================================
+        const defaultPackages = [
+            {
+                id: '1h',
+                name: '1 Hour',
+                desc: 'Quick fix for urgent issues',
+                price: 2000,
+                hours: 1,
+                icon: 'fa-bolt',
+                features: ['Priority Queue', 'Basic Support', '1 Hour Access'],
+                popular: false,
+                active: true
+            },
+            {
+                id: '2h',
+                name: '2 Hours',
+                desc: 'Best value with priority access',
+                price: 3750,
+                hours: 2,
+                icon: 'fa-chart-line',
+                features: ['Priority Queue', 'Priority Support', '2 Hours Access', 'Best Value'],
+                popular: true,
+                active: true
+            },
+            {
+                id: '4h',
+                name: '4 Hours',
+                desc: 'Extended access for complex tasks',
+                price: 7550,
+                hours: 4,
+                icon: 'fa-star',
+                features: ['Priority Queue', 'Premium Support', '4 Hours Access', 'Extended Coverage'],
+                popular: false,
+                active: true
+            },
+            {
+                id: '8h',
+                name: '8 Hours',
+                desc: 'Full day professional coverage',
+                price: 15000,
+                hours: 8,
+                icon: 'fa-crown',
+                features: ['Priority Queue', '24/7 Support', '8 Hours Access', 'Pro Features'],
+                popular: false,
+                active: true
+            },
+            {
+                id: '1d',
+                name: '1 Day',
+                desc: 'Ultimate unlimited access',
+                price: 40000,
+                hours: 24,
+                icon: 'fa-infinity',
+                features: ['Priority Queue', 'VIP Support', '24 Hours Access', 'All Features', 'Unlimited Requests'],
+                popular: false,
+                active: true
+            }
+        ];
+
+        let discountPercent = 0;
+        let isDiscountActive = false;
+        let packagesData = [];
+
+        // ============================================================
+        // 📥 LOAD PACKAGES FROM FIREBASE
+        // ============================================================
+        function loadPackages() {
+            const grid = document.getElementById('packagesGrid');
+            const loading = document.getElementById('loadingState');
+
+            // Show loading
+            if (loading) loading.style.display = 'block';
+
+            db.ref('packages').once('value').then((snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    // Convert object to array
+                    packagesData = Object.values(data);
+                    console.log('📦 Packages loaded from Firebase:', packagesData.length);
+                } else {
+                    // No packages in Firebase, use default
+                    packagesData = defaultPackages;
+                    console.log('📦 Using default packages');
+                    
+                    // Save default packages to Firebase for future
+                    saveDefaultPackages();
+                }
+                
+                // Hide loading
+                if (loading) loading.style.display = 'none';
+                
+                // Render packages
+                renderPackages();
+                
+            }).catch((error) => {
+                console.error('❌ Error loading packages:', error);
+                // Use default packages on error
+                packagesData = defaultPackages;
+                if (loading) loading.style.display = 'none';
+                renderPackages();
+                showToast('Using default packages', 'error');
+            });
+        }
+
+        // ============================================================
+        // 💾 SAVE DEFAULT PACKAGES TO FIREBASE
+        // ============================================================
+        function saveDefaultPackages() {
+            const updates = {};
+            defaultPackages.forEach(pkg => {
+                updates[pkg.id] = pkg;
+            });
+            db.ref('packages').update(updates).then(() => {
+                console.log('✅ Default packages saved to Firebase');
+            }).catch((error) => {
+                console.error('❌ Error saving packages:', error);
+            });
+        }
+
+        // ============================================================
+        // 📥 LOAD DISCOUNT FROM FIREBASE
+        // ============================================================
+        function loadDiscountSettings() {
+            db.ref('appSettings/discount').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    discountPercent = data.percent || 0;
+                    isDiscountActive = data.active || false;
+                    console.log('📊 Discount loaded:', discountPercent + '%', 'Active:', isDiscountActive);
+                } else {
+                    discountPercent = 0;
+                    isDiscountActive = false;
+                }
+                
+                // Update UI
+                updateDiscountBanner();
+                renderPackages();
+            }, (error) => {
+                console.error('❌ Error loading discount:', error);
+            });
+        }
+
+        // ============================================================
+        // 🎨 UPDATE DISCOUNT BANNER
+        // ============================================================
+        function updateDiscountBanner() {
+            const banner = document.getElementById('discountBanner');
+            const discountText = document.getElementById('discountText');
+            const discountBadge = document.getElementById('discountBadge');
+
+            if (isDiscountActive && discountPercent > 0) {
+                banner.classList.add('show');
+                discountText.textContent = discountPercent + '% OFF';
+                discountBadge.textContent = '-' + discountPercent + '%';
+            } else {
+                banner.classList.remove('show');
+            }
+        }
+
+        // ============================================================
+        // 🎨 RENDER PACKAGES
+        // ============================================================
+        function renderPackages() {
+            const grid = document.getElementById('packagesGrid');
+            
+            if (!packagesData || packagesData.length === 0) {
+                grid.innerHTML = `
+                    <div style="text-align:center;color:#8899cc;padding:40px;">
+                        <i class="fas fa-box-open" style="font-size:32px;display:block;margin-bottom:10px;"></i>
+                        No packages available
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+
+            packagesData.forEach((pkg) => {
+                // Skip inactive packages
+                if (pkg.active === false) return;
+
+                const originalPrice = pkg.price || 0;
+                let discountedPrice = originalPrice;
+                let hasDiscount = false;
+
+                if (isDiscountActive && discountPercent > 0 && originalPrice > 0) {
+                    discountedPrice = Math.round(originalPrice - (originalPrice * discountPercent / 100));
+                    hasDiscount = true;
+                }
+
+                const priceDisplay = hasDiscount ? `
+                    <span class="price-amount discounted">₹${discountedPrice.toLocaleString()}</span>
+                    <span class="price-original">₹${originalPrice.toLocaleString()}</span>
+                ` : `
+                    <span class="price-amount">₹${originalPrice.toLocaleString()}</span>
+                `;
+
+                const discountBadgeHtml = hasDiscount ? `
+                    <div class="discount-badge show">-${discountPercent}%</div>
+                ` : '';
+
+                const popularRibbon = pkg.popular ? `
+                    <div class="popular-ribbon"><i class="fas fa-fire"></i> MOST POPULAR</div>
+                ` : '';
+
+                const featuresHtml = pkg.features ? pkg.features.map(f => `
+                    <div class="feature-item"><i class="fas fa-check-circle"></i> ${f}</div>
+                `).join('') : '';
+
+                const saveAmount = hasDiscount ? (originalPrice - discountedPrice).toLocaleString() : 0;
+                const priceNote = hasDiscount && saveAmount > 0 ? `Save ₹${saveAmount} compared to regular price` : '';
+
+                const iconClass = pkg.icon || 'fa-box';
+
+                html += `
+                    <div class="package-card">
+                        ${discountBadgeHtml}
+                        ${popularRibbon}
+                        <div class="package-icon"><i class="fas ${iconClass}"></i></div>
+                        <div class="package-name">${pkg.name || 'Package'}</div>
+                        <div class="package-desc">${pkg.desc || ''}</div>
+                        <div class="price-section">
+                            <div class="price-row">
+                                ${priceDisplay}
+                                ${pkg.hours ? `<span class="price-unit">/ ${pkg.hours} hour${pkg.hours > 1 ? 's' : ''}</span>` : ''}
+                            </div>
+                            ${priceNote ? `<div class="price-note">${priceNote}</div>` : ''}
+                        </div>
+                        <div class="features">
+                            ${featuresHtml}
+                        </div>
+                        <button class="buy-btn" onclick="buyPackage('${pkg.name || 'Package'}', ${hasDiscount ? discountedPrice : originalPrice}, ${pkg.hours || 0})">
+                            Get Started <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                `;
+            });
+
+            grid.innerHTML = html;
+        }
+
+        // ============================================================
+        // 🛒 BUY PACKAGE
+        // ============================================================
+        function buyPackage(name, price, hours) {
+            localStorage.setItem('selectedPackage', name);
+            localStorage.setItem('selectedPrice', price);
+            localStorage.setItem('selectedHours', hours);
+            localStorage.setItem('discountApplied', discountPercent);
+            window.location.href = 'buy-package.html';
+        }
+
+        // ============================================================
+        // 💬 TOAST
+        // ============================================================
+        function showToast(msg, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'toast toast-' + type + ' show';
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ============================================================
+        // 🚀 INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Packages page loaded');
+            
+            // Load discount settings first
+            loadDiscountSettings();
+            
+            // Then load packages
+            loadPackages();
+        });
+    </script>
+</body>
+</html>

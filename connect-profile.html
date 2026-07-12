@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Connect Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --blue: #448AFF;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --orange: #ffa502;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding-bottom: 30px;
+        }
+
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .back-btn {
+            background: rgba(68,138,255,0.1);
+            border: 1px solid rgba(68,138,255,0.2);
+            color: var(--blue);
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        .back-btn:active {
+            transform: scale(0.92);
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .header h1 span {
+            color: var(--blue);
+        }
+
+        .main-content {
+            padding: 16px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 22px;
+            margin-bottom: 14px;
+        }
+        .card-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text2);
+        }
+        .card-title i {
+            color: var(--blue);
+        }
+
+        .info-box {
+            background: rgba(68,138,255,0.05);
+            border: 1px solid rgba(68,138,255,0.1);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+        }
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            color: var(--text3);
+            width: 80px;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+        .info-value {
+            color: var(--text);
+            word-break: break-all;
+        }
+        .info-value a {
+            color: var(--blue);
+            text-decoration: none;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text3);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .form-input {
+            width: 100%;
+            padding: 13px 14px;
+            background: var(--input);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .form-input:focus {
+            border-color: var(--blue);
+        }
+        .form-input::placeholder {
+            color: #3a4060;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        .btn:active {
+            transform: scale(0.96);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--blue), #2962FF);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(68,138,255,0.25);
+        }
+        .btn-danger {
+            background: transparent;
+            border: 1px solid var(--red);
+            color: var(--red);
+            margin-top: 8px;
+        }
+
+        .no-data {
+            color: var(--text4);
+            font-size: 12px;
+            text-align: center;
+            padding: 16px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast-success {
+            background: var(--green);
+            color: white;
+        }
+        .toast-error {
+            background: var(--red);
+            color: white;
+        }
+
+        .watermark {
+            text-align: center;
+            color: rgba(255,255,255,0.06);
+            font-size: 10px;
+            padding: 10px;
+        }
+
+        @media (max-width: 400px) {
+            .card { padding: 16px 14px; }
+            .info-row { font-size: 12px; flex-wrap: wrap; }
+            .info-label { width: 70px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+            <h1><span>CONNECT</span> PROFILE</h1>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- MAIN -->
+    <div class="main-content">
+
+        <!-- Current Connections -->
+        <div class="card">
+            <div class="card-title"><i class="fas fa-link"></i> Connected Accounts</div>
+            <div id="currentConnections">
+                <div class="no-data">No accounts connected</div>
+            </div>
+        </div>
+
+        <!-- Connect Form -->
+        <div class="card">
+            <div class="card-title"><i class="fas fa-plus-circle"></i> Connect New Account</div>
+            
+            <div class="form-group">
+                <label class="form-label">🎰 Casino Account Username</label>
+                <input type="text" class="form-input" id="connectUsername" placeholder="Enter your casino username">
+            </div>
+            <div class="form-group">
+                <label class="form-label">🔗 Casino Website Link (Refer Link)</label>
+                <input type="url" class="form-input" id="connectLink" placeholder="https://example.com/ref=yourid">
+            </div>
+            <button class="btn btn-primary" onclick="saveConnection()">
+                <i class="fas fa-link"></i> CONNECT
+            </button>
+            
+            <button class="btn btn-danger" onclick="disconnectAll()" style="margin-top:10px;">
+                <i class="fas fa-unlink"></i> DISCONNECT ALL
+            </button>
+        </div>
+
+    </div>
+
+    <div class="watermark">Revo Fixer © 2026</div>
+
+    <script>
+        // ============================================================
+        // 🔥 FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLz9LCMNsfb7tHJ2t-oocGjVD-nVox3GM",
+            authDomain: "revo-fixer-45a26.firebaseapp.com",
+            databaseURL: "https://revo-fixer-45a26-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "revo-fixer-45a26",
+            storageBucket: "revo-fixer-45a26.firebasestorage.app",
+            messagingSenderId: "496963115399",
+            appId: "1:496963115399:web:d38ec404edff64dfecdb22"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ============================================================
+        // 📱 CHECK USER
+        // ============================================================
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            window.location.href = 'index.html';
+        }
+
+        // ============================================================
+        // 📦 LOAD CONNECTIONS
+        // ============================================================
+        function loadConnections() {
+            db.ref('users/' + userId + '/connections').on('value', (snapshot) => {
+                const container = document.getElementById('currentConnections');
+                const data = snapshot.val();
+                
+                if (!data || (!data.username && !data.bettingLink)) {
+                    container.innerHTML = '<div class="no-data">No accounts connected</div>';
+                    return;
+                }
+                
+                let html = '<div class="info-box">';
+                if (data.username) {
+                    html += `
+                        <div class="info-row">
+                            <span class="info-label">Username</span>
+                            <span class="info-value">${escapeHtml(data.username)}</span>
+                        </div>
+                    `;
+                }
+                if (data.bettingLink) {
+                    html += `
+                        <div class="info-row">
+                            <span class="info-label">Refer Link</span>
+                            <span class="info-value"><a href="${data.bettingLink}" target="_blank">${data.bettingLink}</a></span>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+                container.innerHTML = html;
+            });
+        }
+
+        // ============================================================
+        // 💾 SAVE CONNECTION
+        // ============================================================
+        function saveConnection() {
+            const username = document.getElementById('connectUsername').value.trim();
+            const link = document.getElementById('connectLink').value.trim();
+            
+            if (!username && !link) {
+                showToast('Please enter at least one field', true);
+                return;
+            }
+            
+            const connections = {};
+            if (username) connections.username = username;
+            if (link) connections.bettingLink = link;
+            
+            db.ref('users/' + userId + '/connections').set(connections)
+                .then(() => {
+                    db.ref('users/' + userId + '/activity').push({
+                        text: '🔗 Profile connected successfully',
+                        time: Date.now()
+                    });
+                    showToast('✅ Profile connected successfully!');
+                    document.getElementById('connectUsername').value = '';
+                    document.getElementById('connectLink').value = '';
+                })
+                .catch((error) => {
+                    showToast('Error: ' + error.message, true);
+                });
+        }
+
+        // ============================================================
+        // 🔓 DISCONNECT ALL
+        // ============================================================
+        function disconnectAll() {
+            if (!confirm('⚠️ Remove all connected accounts? This action cannot be undone.')) return;
+            
+            db.ref('users/' + userId + '/connections').set({})
+                .then(() => {
+                    db.ref('users/' + userId + '/activity').push({
+                        text: '🔓 All accounts disconnected',
+                        time: Date.now()
+                    });
+                    showToast('✅ All accounts disconnected');
+                })
+                .catch((error) => {
+                    showToast('Error: ' + error.message, true);
+                });
+        }
+
+        // ============================================================
+        // 🛡️ ESCAPE HTML
+        // ============================================================
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // ============================================================
+        // 💬 TOAST
+        // ============================================================
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'toast ' + (isError ? 'toast-error' : 'toast-success') + ' show';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ============================================================
+        // 🔙 GO BACK
+        // ============================================================
+        function goBack() {
+            window.location.href = 'dashboard.html';
+        }
+
+        // ============================================================
+        // 🚀 INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔗 Connect Profile page loaded');
+            loadConnections();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Live Stats</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --blue: #448AFF;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --gold: #FFD700;
+            --orange: #ffa502;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            background: rgba(68,138,255,0.1);
+            border: 1px solid rgba(68,138,255,0.2);
+            color: var(--blue);
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        .back-btn:active {
+            transform: scale(0.92);
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .header h1 span {
+            color: var(--blue);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 14px;
+        }
+
+        .timeframe-selector {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 4px;
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .time-btn {
+            flex: 1;
+            padding: 8px 10px;
+            background: transparent;
+            border: none;
+            color: var(--text3);
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 30px;
+            transition: all 0.2s;
+            min-width: 50px;
+        }
+        .time-btn.active {
+            background: var(--blue);
+            color: white;
+        }
+        .time-btn:active {
+            transform: scale(0.95);
+        }
+
+        .live-status {
+            background: linear-gradient(135deg, rgba(255,71,87,0.12), rgba(68,138,255,0.08));
+            border: 1px solid rgba(255,71,87,0.2);
+            border-radius: 30px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--red);
+            border-radius: 50%;
+            animation: pulseRed 1.5s infinite;
+        }
+        @keyframes pulseRed {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .live-text {
+            color: var(--red);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .live-time {
+            font-size: 10px;
+            color: var(--text3);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 12px 8px;
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 9px;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--blue);
+        }
+        .stat-compare {
+            font-size: 9px;
+            color: var(--green);
+            margin-top: 2px;
+        }
+        .stat-compare.down {
+            color: var(--red);
+        }
+
+        .history-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .spin-count {
+            font-size: 10px;
+            color: var(--text3);
+        }
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+        .history-table th {
+            text-align: left;
+            padding: 8px 4px;
+            color: var(--text3);
+            font-size: 9px;
+            border-bottom: 1px solid var(--border);
+        }
+        .history-table td {
+            padding: 8px 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .slot-match { color: var(--green); font-weight: 600; }
+        .slot-miss { color: var(--red); }
+        .result-number { font-weight: 700; color: var(--gold); }
+        .result-bonus { color: var(--orange); font-weight: 600; }
+        .multiplier-high { color: var(--green); font-weight: 700; }
+
+        .bonus-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .bonus-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .bonus-item {
+            text-align: center;
+            padding: 10px 8px;
+            background: var(--input);
+            border-radius: 12px;
+        }
+        .bonus-name {
+            font-size: 10px;
+            color: var(--orange);
+            font-weight: 600;
+        }
+        .bonus-avg {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--blue);
+        }
+        .bonus-trend {
+            font-size: 9px;
+            color: var(--green);
+        }
+        .bonus-trend.down {
+            color: var(--red);
+        }
+
+        .multiplier-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .multiplier-tag {
+            background: var(--input);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gold);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 24px;
+            color: var(--text4);
+        }
+
+        .toast {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 9999;
+            transition: all 0.3s;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .toast.show { opacity: 1; }
+        .toast-success { background: #00c853; color: #000; }
+        .toast-error { background: #ff1744; color: #fff; }
+
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: repeat(3, 1fr); }
+            .bonus-grid { grid-template-columns: repeat(2, 1fr); }
+            .history-table th, .history-table td { font-size: 9px; padding: 6px 3px; }
+        }
+        @media (max-width: 400px) {
+            .time-btn { font-size: 9px; padding: 6px 6px; }
+            .stat-value { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+        <h1><span>CRAZY TIME</span> LIVE STATS</h1>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="container">
+        <div class="timeframe-selector">
+            <button class="time-btn active" data-hours="1" onclick="setTimeframe(1, this)">1H</button>
+            <button class="time-btn" data-hours="6" onclick="setTimeframe(6, this)">6H</button>
+            <button class="time-btn" data-hours="12" onclick="setTimeframe(12, this)">12H</button>
+            <button class="time-btn" data-hours="24" onclick="setTimeframe(24, this)">24H</button>
+            <button class="time-btn" data-hours="48" onclick="setTimeframe(48, this)">48H</button>
+            <button class="time-btn" data-hours="72" onclick="setTimeframe(72, this)">72H</button>
+        </div>
+
+        <div class="live-status">
+            <div class="live-badge">
+                <div class="live-dot"></div>
+                <span class="live-text">LIVE</span>
+            </div>
+            <div class="live-time" id="liveTime">Updating...</div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Spins</div>
+                <div class="stat-value" id="totalSpins">0</div>
+                <div class="stat-compare" id="spinCompare">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Match Rate</div>
+                <div class="stat-value" id="matchRate">0%</div>
+                <div class="stat-compare" id="matchCompare">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Avg Multiplier</div>
+                <div class="stat-value" id="avgMultiplier">0x</div>
+                <div class="stat-compare" id="multiplierCompare">-</div>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <div class="section-title">
+                <span><i class="fas fa-list"></i> Spin History</span>
+                <span class="spin-count" id="spinCount">0 spins</span>
+            </div>
+            <div style="overflow-x:auto;">
+                <table class="history-table">
+                    <thead>
+                        <tr><th>Time</th><th>Match</th><th>Result</th><th>Multiplier</th><th>Payout</th></tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr><td colspan="5" style="text-align:center;color:var(--text4);padding:20px;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bonus-section">
+            <div class="section-title"><span><i class="fas fa-gift"></i> Bonus Games</span></div>
+            <div class="bonus-grid" id="bonusGrid">
+                <div class="bonus-item"><div class="bonus-name">Coin Flip</div><div class="bonus-avg" id="coinFlipAvg">-</div><div class="bonus-trend" id="coinFlipTrend">-</div></div>
+                <div class="bonus-item"><div class="bonus-name">Cash Hunt</div><div class="bonus-avg" id="cashHuntAvg">-</div><div class="bonus-trend" id="cashHuntTrend">-</div></div>
+                <div class="bonus-item"><div class="bonus-name">Pachinko</div><div class="bonus-avg" id="pachinkoAvg">-</div><div class="bonus-trend" id="pachinkoTrend">-</div></div>
+                <div class="bonus-item"><div class="bonus-name">Crazy Time</div><div class="bonus-avg" id="crazyTimeAvg">-</div><div class="bonus-trend" id="crazyTimeTrend">-</div></div>
+            </div>
+        </div>
+
+        <div class="bonus-section">
+            <div class="section-title"><span><i class="fas fa-trophy"></i> Top Multipliers</span></div>
+            <div class="multiplier-list" id="topMultipliers">
+                <div class="loading">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTimeframe = 1;
+        let refreshInterval = null;
+
+        function goBack() {
+            window.location.href = 'dashboard.html';
+        }
+
+        function showToast(msg, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'toast toast-' + type + ' show';
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function setTimeframe(hours, btn) {
+            document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentTimeframe = hours;
+            fetchLiveData();
+        }
+
+        function fetchLiveData() {
+            const liveTime = document.getElementById('liveTime');
+            liveTime.textContent = 'Updating...';
+            
+            // Demo data generation
+            generateDemoData();
+            
+            updateLiveTime();
+        }
+
+        function generateDemoData() {
+            const currentDate = new Date();
+            const results = ['1', '2', '5', '10', 'COIN FLIP', 'CASH HUNT', 'PACHINKO', 'CRAZY TIME'];
+            const multipliers = [1, 2, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 150, 200, 250, 400];
+            
+            const spinCount = currentTimeframe === 1 ? 80 : 
+                            currentTimeframe === 6 ? 450 : 
+                            currentTimeframe === 12 ? 900 : 
+                            currentTimeframe === 24 ? 1800 : 3600;
+            
+            let spins = [];
+            let matchCount = 0;
+            let totalMultiplier = 0;
+            let bonusData = {
+                'COIN FLIP': [],
+                'CASH HUNT': [],
+                'PACHINKO': [],
+                'CRAZY TIME': []
+            };
+            
+            for (let i = 0; i < spinCount; i++) {
+                const isMatch = Math.random() > 0.9;
+                const result = results[Math.floor(Math.random() * results.length)];
+                const multiplier = multipliers[Math.floor(Math.random() * multipliers.length)];
+                const isNumber = ['1', '2', '5', '10'].includes(result);
+                
+                if (isMatch) matchCount++;
+                if (!isNumber) {
+                    totalMultiplier += multiplier;
+                    if (bonusData[result]) bonusData[result].push(multiplier);
+                }
+                
+                const minutesAgo = Math.floor(Math.random() * (currentTimeframe * 60));
+                const spinTime = new Date(currentDate.getTime() - minutesAgo * 60000);
+                
+                spins.push({
+                    time: spinTime,
+                    timeStr: spinTime.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' }),
+                    slotMatch: isMatch,
+                    result: result,
+                    multiplier: isNumber ? null : multiplier,
+                    payout: isNumber ? (parseInt(result) * 1000) : (multiplier * 500)
+                });
+            }
+            
+            spins.sort((a, b) => b.time - a.time);
+            
+            const matchRate = (matchCount / spinCount * 100).toFixed(1);
+            const bonusCount = spins.filter(s => !['1','2','5','10'].includes(s.result)).length;
+            const avgBonusMultiplier = bonusCount > 0 ? (totalMultiplier / bonusCount).toFixed(1) : '0';
+            
+            document.getElementById('totalSpins').textContent = spinCount.toLocaleString();
+            document.getElementById('matchRate').textContent = matchRate + '%';
+            document.getElementById('avgMultiplier').textContent = avgBonusMultiplier + 'x';
+            
+            document.getElementById('spinCompare').textContent = `+${Math.floor(Math.random() * 20)}% vs avg`;
+            document.getElementById('matchCompare').textContent = `${Math.random() > 0.5 ? '+' : ''}${(Math.random() * 15).toFixed(1)}% vs avg`;
+            document.getElementById('multiplierCompare').textContent = `${Math.random() > 0.5 ? '+' : ''}${(Math.random() * 30).toFixed(1)}% vs avg`;
+            document.getElementById('spinCount').textContent = `${spinCount} spins`;
+            
+            // Bonus stats
+            const bonusAvgs = {};
+            for (const [bonus, values] of Object.entries(bonusData)) {
+                const avg = values.length > 0 ? (values.reduce((a,b) => a+b,0) / values.length).toFixed(1) : '0';
+                bonusAvgs[bonus] = avg;
+            }
+            
+            const allTimeAvg = { 'COIN FLIP': 8.5, 'CASH HUNT': 12.3, 'PACHINKO': 18.7, 'CRAZY TIME': 45.2 };
+            const bonusMap = {
+                'COIN FLIP': { id: 'coinFlipAvg', trend: 'coinFlipTrend' },
+                'CASH HUNT': { id: 'cashHuntAvg', trend: 'cashHuntTrend' },
+                'PACHINKO': { id: 'pachinkoAvg', trend: 'pachinkoTrend' },
+                'CRAZY TIME': { id: 'crazyTimeAvg', trend: 'crazyTimeTrend' }
+            };
+            
+            for (const [bonus, avg] of Object.entries(bonusAvgs)) {
+                const currentAvg = parseFloat(avg) || 0;
+                const allTime = allTimeAvg[bonus] || 1;
+                const diff = ((currentAvg - allTime) / allTime * 100).toFixed(1);
+                
+                const map = bonusMap[bonus];
+                if (map) {
+                    document.getElementById(map.id).textContent = currentAvg > 0 ? currentAvg + 'x' : '-';
+                    const trendEl = document.getElementById(map.trend);
+                    trendEl.textContent = `${diff > 0 ? '+' : ''}${diff}%`;
+                    trendEl.className = `bonus-trend ${diff >= 0 ? '' : 'down'}`;
+                }
+            }
+            
+            // History table
+            const tbody = document.getElementById('historyBody');
+            let html = '';
+            const displaySpins = spins.slice(0, 50);
+            displaySpins.forEach(spin => {
+                const isNumber = ['1', '2', '5', '10'].includes(spin.result);
+                html += `
+                    <tr>
+                        <td style="font-size:9px;">${spin.timeStr}</td>
+                        <td class="${spin.slotMatch ? 'slot-match' : 'slot-miss'}">${spin.slotMatch ? '✓' : '✗'}</td>
+                        <td class="${isNumber ? 'result-number' : 'result-bonus'}">${spin.result}</td>
+                        <td class="${spin.multiplier ? 'multiplier-high' : ''}">${spin.multiplier ? spin.multiplier + 'x' : '-'}</td>
+                        <td>€${spin.payout.toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+            
+            // Top multipliers
+            const container = document.getElementById('topMultipliers');
+            const topMultipliers = [400, 250, 200, 150, 100, 100, 75, 70, 50, 50];
+            let mHtml = '';
+            topMultipliers.forEach(m => {
+                mHtml += `<span class="multiplier-tag">⚡ ${m}x</span>`;
+            });
+            container.innerHTML = mHtml;
+        }
+
+        function updateLiveTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second:'2-digit' });
+            document.getElementById('liveTime').textContent = `Live at ${timeStr}`;
+        }
+
+        // Auto refresh every 10 seconds
+        setInterval(() => {
+            fetchLiveData();
+        }, 10000);
+
+        // Initial load
+        fetchLiveData();
+    </script>
+</body>
+</html>

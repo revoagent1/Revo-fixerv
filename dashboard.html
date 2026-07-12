@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        /* ===== RESET & BASE ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --blue: #448AFF;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --orange: #ffa502;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 80px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overscroll-behavior: none;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .menu-btn {
+            background: rgba(68,138,255,0.1);
+            border: 1px solid rgba(68,138,255,0.2);
+            color: var(--blue);
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .menu-btn:active {
+            transform: scale(0.92);
+        }
+        .header h1 {
+            font-size: 17px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+        .header h1 span {
+            color: var(--blue);
+        }
+        .logout-btn {
+            background: transparent;
+            border: 1px solid var(--red);
+            color: var(--red);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .logout-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            padding: 14px 16px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* ===== STATS ROW ===== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px 8px;
+            text-align: center;
+            transition: all 0.2s;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .stat-card:active {
+            transform: scale(0.96);
+        }
+        .stat-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--blue), #2962FF);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 6px;
+        }
+        .stat-icon i {
+            font-size: 13px;
+            color: #fff;
+        }
+        .stat-value {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1.2;
+        }
+        .stat-label {
+            font-size: 9px;
+            color: var(--text3);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        /* ===== PACKAGE CARD ===== */
+        .package-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 14px;
+        }
+        .package-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .package-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text3);
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .status-active { background: rgba(46,213,115,0.12); color: var(--green); border: 1px solid var(--green); }
+        .status-approved { background: rgba(68,138,255,0.12); color: var(--blue); border: 1px solid var(--blue); }
+        .status-pending { background: rgba(255,165,2,0.12); color: var(--orange); border: 1px solid var(--orange); }
+        .status-nopackage { background: rgba(108,117,125,0.12); color: #6c757d; border: 1px solid #6c757d; }
+        .status-expired { background: rgba(255,71,87,0.12); color: var(--red); border: 1px solid var(--red); }
+        
+        .package-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--blue);
+            margin-bottom: 14px;
+        }
+        
+        /* ===== TIMER ===== */
+        .timer-box {
+            background: var(--input);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .timer-label {
+            font-size: 10px;
+            color: var(--text3);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .timer-display {
+            font-size: 34px;
+            font-weight: 900;
+            color: var(--blue);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ===== ACTION GRID ===== */
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .action-btn {
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-decoration: none;
+            display: block;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .action-btn:active {
+            transform: scale(0.95);
+            background: rgba(68,138,255,0.05);
+        }
+        .action-btn i {
+            font-size: 17px;
+            color: var(--blue);
+            display: block;
+            margin-bottom: 4px;
+        }
+        .action-btn span {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text2);
+        }
+
+        /* ===== WALLET CARD ===== */
+        .wallet-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 14px;
+        }
+        .wallet-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text3);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .wallet-title i {
+            color: var(--blue);
+        }
+        .wallet-balance-box {
+            background: rgba(68,138,255,0.05);
+            border: 1px solid rgba(68,138,255,0.1);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .balance-label {
+            font-size: 10px;
+            color: var(--text3);
+            letter-spacing: 1px;
+        }
+        .balance-amount {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--blue);
+        }
+        .wallet-btn {
+            width: 100%;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.15s;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .wallet-btn:active {
+            transform: scale(0.97);
+        }
+        .wallet-btn i {
+            color: var(--blue);
+        }
+
+        /* ===== ACTIVITY ===== */
+        .activity-list {
+            margin-top: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        .activity-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--blue);
+            flex-shrink: 0;
+        }
+        .activity-text {
+            flex: 1;
+            font-size: 12px;
+            color: var(--text2);
+            line-height: 1.3;
+        }
+        .activity-time {
+            font-size: 9px;
+            color: var(--text4);
+            flex-shrink: 0;
+        }
+
+        /* ===== TELEGRAM BUTTON ===== */
+        .telegram-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #0088cc, #006699);
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .telegram-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* ===== SIDE MENU ===== */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 270px;
+            height: 100vh;
+            background: #111320;
+            border-right: 1px solid var(--border);
+            transition: left 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+            z-index: 200;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .side-menu.open {
+            left: 0;
+        }
+        .menu-header {
+            padding: 24px 20px 16px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .menu-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 2px solid var(--blue);
+            background: #1a1f38;
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .menu-username {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .menu-wallet {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--blue);
+            margin-top: 4px;
+        }
+        .menu-items {
+            list-style: none;
+            padding: 6px 0;
+        }
+        .menu-items li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: var(--text2);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .menu-items li:active {
+            background: rgba(68,138,255,0.08);
+        }
+        .menu-items li i {
+            color: var(--blue);
+            width: 18px;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 199;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* ===== TOAST ===== */
+        .toast-container {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-width: 320px;
+            width: 100%;
+        }
+        .toast-el {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideInToast 0.3s ease;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        @keyframes slideInToast {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .toast-el.success { border-left: 3px solid var(--green); }
+        .toast-el.error { border-left: 3px solid var(--red); }
+        .toast-el.warning { border-left: 3px solid var(--orange); }
+        .toast-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+            color: #fff;
+        }
+        .toast-el.success .toast-icon { background: var(--green); }
+        .toast-el.error .toast-icon { background: var(--red); }
+        .toast-el.warning .toast-icon { background: var(--orange); }
+        .toast-title { font-weight: 600; font-size: 12px; }
+        .toast-msg { font-size: 11px; color: var(--text2); margin-top: 1px; }
+
+        /* ===== WATERMARK ===== */
+        .watermark {
+            position: fixed;
+            bottom: 10px;
+            right: 14px;
+            color: rgba(255,255,255,0.06);
+            font-size: 9px;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 400px) {
+            .main-content { padding: 10px 12px; }
+            .timer-display { font-size: 28px; }
+            .stat-value { font-size: 16px; }
+            .balance-amount { font-size: 24px; }
+            .package-card { padding: 16px; }
+            .wallet-card { padding: 16px; }
+        }
+
+        /* ===== SCROLLBAR HIDE ===== */
+        ::-webkit-scrollbar {
+            width: 0;
+            background: transparent;
+        }
+        * {
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== SIDE MENU ===== -->
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-header">
+            <div class="menu-avatar">🎯</div>
+            <div class="menu-username" id="menuUsername">User</div>
+            <div class="menu-wallet" id="menuBalance">₹0</div>
+        </div>
+        <ul class="menu-items">
+            <li onclick="navigate('profile.html')"><i class="fas fa-user-circle"></i> My Profile</li>
+            <li onclick="navigate('connect-profile.html')"><i class="fas fa-link"></i> Connect Profile</li>
+            <li onclick="navigate('transactions.html')"><i class="fas fa-history"></i> Transactions</li>
+            <li onclick="window.open('https://t.me/+CNJHfpdP1ck0NDA1','_blank')"><i class="fas fa-headset"></i> Support</li>
+        </ul>
+    </div>
+    <div class="overlay" id="overlay" onclick="closeMenu()"></div>
+
+    <!-- ===== HEADER ===== -->
+    <div class="header">
+        <div class="header-left">
+            <button class="menu-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+            <h1><span>REVO</span> FIXER</h1>
+        </div>
+        <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ===== MAIN ===== -->
+    <div class="main-content">
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-card" onclick="navigate('packages.html')">
+                <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                <div class="stat-value" id="packageTime">0h</div>
+                <div class="stat-label">Package</div>
+            </div>
+            <div class="stat-card" onclick="navigate('transactions.html')">
+                <div class="stat-icon"><i class="fas fa-tag"></i></div>
+                <div class="stat-value" id="packagePrice">₹0</div>
+                <div class="stat-label">Price</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-circle"></i></div>
+                <div class="stat-value" id="statusDisplay">-</div>
+                <div class="stat-label">Status</div>
+            </div>
+        </div>
+
+        <!-- Package -->
+        <div class="package-card">
+            <div class="package-header">
+                <span class="package-title">📦 Current Package</span>
+                <span class="status-badge status-nopackage" id="statusBadge">NO PACKAGE</span>
+            </div>
+            <div class="package-name" id="packageName">No Active Package</div>
+            <div class="timer-box">
+                <div class="timer-label">Time Remaining</div>
+                <div class="timer-display" id="timer">00:00:00</div>
+            </div>
+            <div class="action-grid">
+                <a href="packages.html" class="action-btn"><i class="fas fa-shopping-cart"></i><span>Buy</span></a>
+                <a href="deposit.html" class="action-btn"><i class="fas fa-plus-circle"></i><span>Deposit</span></a>
+                <a href="activation.html" class="action-btn"><i class="fas fa-play-circle"></i><span>Signal</span></a>
+                <a href="statistics.html" class="action-btn"><i class="fas fa-chart-bar"></i><span>Stats</span></a>
+            </div>
+        </div>
+
+        <!-- Wallet -->
+        <div class="wallet-card">
+            <div class="wallet-title"><i class="fas fa-wallet"></i> My Wallet</div>
+            <div class="wallet-balance-box">
+                <div class="balance-label">Available Balance</div>
+                <div class="balance-amount" id="walletBalance">₹0</div>
+            </div>
+            <a href="wallet-transfer.html" class="wallet-btn"><i class="fas fa-exchange-alt"></i> Transfer</a>
+            <a href="connect-profile.html" class="wallet-btn"><i class="fas fa-link"></i> Connect Profile</a>
+            
+            <div class="wallet-title" style="margin-top:12px;font-size:12px;"><i class="fas fa-history"></i> Recent Activity</div>
+            <div class="activity-list" id="activityList">
+                <div class="activity-item">
+                    <div class="activity-dot"></div>
+                    <span class="activity-text">Welcome to Revo Fixer</span>
+                    <span class="activity-time">Now</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Telegram -->
+        <button class="telegram-btn" onclick="window.open('https://t.me/+CNJHfpdP1ck0NDA1','_blank')">
+            <i class="fab fa-telegram"></i> Contact Support
+        </button>
+
+    </div>
+
+    <div class="watermark">Revo Fixer © 2026</div>
+
+    <script>
+        // ============================================================
+        // 🔥 FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLz9LCMNsfb7tHJ2t-oocGjVD-nVox3GM",
+            authDomain: "revo-fixer-45a26.firebaseapp.com",
+            databaseURL: "https://revo-fixer-45a26-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "revo-fixer-45a26",
+            storageBucket: "revo-fixer-45a26.firebasestorage.app",
+            messagingSenderId: "496963115399",
+            appId: "1:496963115399:web:d38ec404edff64dfecdb22"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ============================================================
+        // 📱 CHECK USER
+        // ============================================================
+        const userId = localStorage.getItem('userId');
+        const licenseKey = localStorage.getItem('licenseKey');
+        let timerInterval = null;
+
+        if (!userId || !licenseKey) {
+            window.location.href = 'index.html';
+        }
+
+        // ============================================================
+        // 🎯 NAVIGATION
+        // ============================================================
+        function navigate(page) {
+            closeMenu();
+            window.location.href = page;
+        }
+
+        function toggleMenu() {
+            document.getElementById('sideMenu').classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('show');
+        }
+
+        function closeMenu() {
+            document.getElementById('sideMenu').classList.remove('open');
+            document.getElementById('overlay').classList.remove('show');
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }
+        }
+
+        // ============================================================
+        // 💬 TOAST
+        // ============================================================
+        function showToast(type, title, msg) {
+            const container = document.getElementById('toastContainer');
+            const id = 'toast_' + Date.now();
+            const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : '!';
+            container.innerHTML += `
+                <div class="toast-el ${type}" id="${id}">
+                    <div class="toast-icon">${icon}</div>
+                    <div>
+                        <div class="toast-title">${title}</div>
+                        <div class="toast-msg">${msg}</div>
+                    </div>
+                </div>
+            `;
+            setTimeout(() => {
+                const el = document.getElementById(id);
+                if (el) el.remove();
+            }, 3500);
+        }
+
+        // ============================================================
+        // ⏱️ TIMER
+        // ============================================================
+        function startTimer(endTime) {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            const updateTimer = () => {
+                const remaining = endTime - Date.now();
+                if (remaining <= 0) {
+                    document.getElementById('timer').textContent = '00:00:00';
+                    clearInterval(timerInterval);
+                    return;
+                }
+                const h = Math.floor(remaining / 3600000);
+                const m = Math.floor((remaining % 3600000) / 60000);
+                const s = Math.floor((remaining % 60000) / 1000);
+                document.getElementById('timer').textContent = 
+                    String(h).padStart(2, '0') + ':' + 
+                    String(m).padStart(2, '0') + ':' + 
+                    String(s).padStart(2, '0');
+            };
+
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // ============================================================
+        // 📦 LOAD USER DATA
+        // ============================================================
+        function loadUserData() {
+            // Load from securityCodes
+            db.ref('securityCodes/' + licenseKey).on('value', (snap) => {
+                if (!snap.exists()) {
+                    localStorage.clear();
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                const data = snap.val();
+                
+                // Check banned
+                if (data.status === 'banned') {
+                    showToast('error', 'Blocked', 'License is banned. Contact support.');
+                    localStorage.clear();
+                    setTimeout(() => window.location.href = 'index.html', 2000);
+                    return;
+                }
+
+                // Update package info
+                const pkg = data.package || {};
+                const pkgName = pkg.name || 'No Package';
+                const pkgPrice = pkg.price || 0;
+                const pkgHours = pkg.hours || 0;
+                const pkgStatus = data.status || 'approved';
+
+                document.getElementById('packageTime').textContent = pkgHours + 'h';
+                document.getElementById('packagePrice').textContent = '₹' + pkgPrice.toLocaleString();
+                document.getElementById('statusDisplay').textContent = pkgStatus.toUpperCase();
+                document.getElementById('packageName').textContent = pkgName;
+
+                // Status badge
+                const badge = document.getElementById('statusBadge');
+                badge.textContent = pkgStatus.toUpperCase();
+                badge.className = 'status-badge';
+                if (pkgStatus === 'active') badge.classList.add('status-active');
+                else if (pkgStatus === 'approved') badge.classList.add('status-approved');
+                else if (pkgStatus === 'pending') badge.classList.add('status-pending');
+                else if (pkgStatus === 'expired') badge.classList.add('status-expired');
+                else badge.classList.add('status-nopackage');
+
+                // Timer
+                if (pkgStatus === 'active' && pkg.endTime && pkg.endTime > Date.now()) {
+                    startTimer(pkg.endTime);
+                } else {
+                    document.getElementById('timer').textContent = '00:00:00';
+                    if (timerInterval) clearInterval(timerInterval);
+                }
+
+                // Load username
+                const username = localStorage.getItem('username') || 'User';
+                document.getElementById('menuUsername').textContent = username;
+            });
+
+            // Load user balance
+            db.ref('users/' + userId).on('value', (snap) => {
+                if (!snap.exists()) return;
+                const data = snap.val();
+                const balance = data.balance || 0;
+                document.getElementById('walletBalance').textContent = '₹' + balance.toLocaleString();
+                document.getElementById('menuBalance').textContent = '₹' + balance.toLocaleString();
+
+                // Update activity
+                if (data.activity) {
+                    const activities = Object.values(data.activity).slice(-5).reverse();
+                    const container = document.getElementById('activityList');
+                    if (activities.length > 0) {
+                        let html = '';
+                        activities.forEach(act => {
+                            const time = act.time ? new Date(act.time).toLocaleTimeString() : '';
+                            html += `
+                                <div class="activity-item">
+                                    <div class="activity-dot"></div>
+                                    <span class="activity-text">${act.text || ''}</span>
+                                    <span class="activity-time">${time}</span>
+                                </div>
+                            `;
+                        });
+                        container.innerHTML = html;
+                    }
+                }
+            });
+        }
+
+        // ============================================================
+        // 🚀 INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Dashboard loaded');
+            loadUserData();
+        });
+
+        // Listen for status changes
+        db.ref('securityCodes/' + licenseKey + '/status').on('value', (snap) => {
+            const newStatus = snap.val();
+            if (newStatus) {
+                console.log('🔄 Status changed to:', newStatus);
+                loadUserData();
+            }
+        });
+    </script>
+</body>
+</html>

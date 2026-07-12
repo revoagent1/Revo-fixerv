@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Activation Code</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --blue: #448AFF;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --orange: #ffa502;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            background: rgba(68,138,255,0.1);
+            border: 1px solid rgba(68,138,255,0.2);
+            color: var(--blue);
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        .back-btn:active {
+            transform: scale(0.92);
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .header h1 span {
+            color: var(--blue);
+        }
+
+        .main-content {
+            padding: 16px;
+            max-width: 420px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 70px);
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 28px 22px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .icon-lg {
+            width: 64px;
+            height: 64px;
+            background: rgba(68,138,255,0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 14px;
+            border: 2px solid rgba(68,138,255,0.2);
+        }
+        .icon-lg i {
+            font-size: 28px;
+            color: var(--blue);
+        }
+
+        .title-lg {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        .title-lg span {
+            color: var(--blue);
+        }
+        .subtitle {
+            font-size: 11px;
+            color: var(--text3);
+            margin-bottom: 18px;
+        }
+
+        .info-box {
+            background: rgba(68,138,255,0.05);
+            border: 1px solid rgba(68,138,255,0.1);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 18px;
+            font-size: 11px;
+            color: var(--text2);
+        }
+        .info-box i {
+            color: var(--blue);
+            margin-right: 5px;
+        }
+
+        .input-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text3);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block;
+            text-align: left;
+        }
+        .input-field {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--input);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 15px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 3px;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .input-field:focus {
+            border-color: var(--blue);
+        }
+        .input-field.error {
+            border-color: var(--red);
+        }
+
+        .error-msg {
+            font-size: 11px;
+            color: var(--red);
+            margin-top: 6px;
+            display: none;
+            text-align: center;
+        }
+        .error-msg.show {
+            display: block;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--blue), #2962FF);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(68,138,255,0.25);
+        }
+        .btn-primary:active {
+            transform: scale(0.96);
+        }
+        .btn-primary:disabled {
+            background: #1e2240;
+            color: #666;
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-primary .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .btn-primary.loading .btn-text {
+            display: none;
+        }
+        .btn-primary.loading .spinner {
+            display: block;
+        }
+
+        .help-text {
+            text-align: center;
+            margin-top: 14px;
+            font-size: 10px;
+            color: var(--text4);
+        }
+        .help-text a {
+            color: var(--blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .toast {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 9999;
+            transition: all 0.3s;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast-success {
+            background: #00c853;
+            color: #000;
+        }
+        .toast-error {
+            background: #ff1744;
+            color: #fff;
+        }
+
+        @media (max-width: 400px) {
+            .card {
+                padding: 20px 16px;
+            }
+            .icon-lg {
+                width: 56px;
+                height: 56px;
+            }
+            .icon-lg i {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+        <h1><span>CRAZY TIME</span> SIGNAL</h1>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="main-content">
+        <div class="card">
+            
+            <div class="icon-lg">
+                <i class="fas fa-ticket-alt"></i>
+            </div>
+            
+            <div class="title-lg"><span>ACTIVATION CODE</span></div>
+            <div class="subtitle">Enter code to access live signal</div>
+
+            <div class="info-box">
+                <i class="fas fa-info-circle"></i> Enter Activation code to Crazy time Revo Signal
+            </div>
+
+            <label class="input-label">🔑 ACTIVATION CODE</label>
+            <input type="text" class="input-field" id="codeInput" placeholder="XXXX-XXXX-XXXX" maxlength="20" autocomplete="off">
+            <div class="error-msg" id="codeError">⚠ Invalid or used activation code</div>
+
+            <button class="btn btn-primary" id="submitBtn" onclick="verifyCode()">
+                <span class="btn-text">CRAZY TIME REVO SIGNAL</span>
+                <span class="spinner"></span>
+            </button>
+
+            <div class="help-text">
+                <i class="fas fa-key"></i> Get code from <a href="https://t.me/+CNJHfpdP1ck0NDA1" target="_blank">Telegram Support</a>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLz9LCMNsfb7tHJ2t-oocGjVD-nVox3GM",
+            authDomain: "revo-fixer-45a26.firebaseapp.com",
+            databaseURL: "https://revo-fixer-45a26-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "revo-fixer-45a26",
+            storageBucket: "revo-fixer-45a26.firebasestorage.app",
+            messagingSenderId: "496963115399",
+            appId: "1:496963115399:web:d38ec404edff64dfecdb22"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            window.location.href = 'index.html';
+        }
+
+        function goBack() {
+            window.location.href = 'dashboard.html';
+        }
+
+        function showToast(msg, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'toast toast-' + type + ' show';
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function setLoading(loading) {
+            const btn = document.getElementById('submitBtn');
+            if (loading) {
+                btn.classList.add('loading');
+                btn.disabled = true;
+            } else {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        }
+
+        function verifyCode() {
+            const code = document.getElementById('codeInput').value.trim();
+            const errorEl = document.getElementById('codeError');
+            const inputEl = document.getElementById('codeInput');
+
+            errorEl.classList.remove('show');
+            inputEl.classList.remove('error');
+
+            if (!code) {
+                errorEl.textContent = '⚠ Please enter activation code';
+                errorEl.classList.add('show');
+                inputEl.classList.add('error');
+                return;
+            }
+
+            setLoading(true);
+
+            const safeCode = code.replace(/[.#$\[\]]/g, '_');
+
+            db.ref('activation_codes/' + safeCode).once('value').then(snap => {
+                if (snap.exists()) {
+                    const data = snap.val();
+
+                    if (data.active !== true && data.active !== "true") {
+                        setLoading(false);
+                        errorEl.textContent = '⚠ Code deactivated';
+                        errorEl.classList.add('show');
+                        showToast('❌ Code deactivated', 'error');
+                        return;
+                    }
+
+                    if (data.used === true) {
+                        setLoading(false);
+                        errorEl.textContent = '⚠ Code already used';
+                        errorEl.classList.add('show');
+                        showToast('❌ Already used', 'error');
+                        return;
+                    }
+
+                    db.ref('activation_codes/' + safeCode).update({
+                        used: true,
+                        usedAt: Date.now(),
+                        usedBy: userId,
+                        usedFor: 'Crazy Time Revo Signal'
+                    });
+
+                    db.ref('users/' + userId + '/activity').push({
+                        text: '🎯 Activated Crazy Time Revo Signal',
+                        time: Date.now()
+                    });
+
+                    setLoading(false);
+                    showToast('✅ Code Verified! Redirecting...', 'success');
+
+                    setTimeout(() => {
+                        window.location.href = 'live-game.html';
+                    }, 1500);
+
+                } else {
+                    setLoading(false);
+                    errorEl.textContent = '⚠ Invalid activation code';
+                    errorEl.classList.add('show');
+                    inputEl.classList.add('error');
+                    showToast('❌ Invalid code', 'error');
+                }
+            }).catch((error) => {
+                console.error('Error:', error);
+                setLoading(false);
+                errorEl.textContent = '⚠ Connection error. Try again.';
+                errorEl.classList.add('show');
+                showToast('❌ Connection error', 'error');
+            });
+        }
+
+        document.getElementById('codeInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') verifyCode();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Add Balance</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --blue: #448AFF;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --orange: #ffa502;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding-bottom: 30px;
+        }
+
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            background: rgba(68,138,255,0.1);
+            border: 1px solid rgba(68,138,255,0.2);
+            color: var(--blue);
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        .back-btn:active {
+            transform: scale(0.92);
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .header h1 span {
+            color: var(--blue);
+        }
+
+        .main-content {
+            padding: 16px;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 14px;
+        }
+
+        /* Deposit Tabs */
+        .deposit-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .deposit-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background: var(--input);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 12px;
+            transition: all 0.2s;
+            min-width: 80px;
+            color: var(--text3);
+        }
+        .deposit-tab.active {
+            border-color: var(--blue);
+            background: rgba(68,138,255,0.08);
+            color: var(--blue);
+        }
+        .deposit-tab:active {
+            transform: scale(0.95);
+        }
+        .deposit-tab i {
+            margin-right: 4px;
+        }
+
+        /* Min Deposit */
+        .min-deposit {
+            text-align: center;
+            padding: 12px;
+            background: rgba(68,138,255,0.04);
+            border: 1px solid rgba(68,138,255,0.08);
+            border-radius: 10px;
+            margin-bottom: 14px;
+        }
+        .min-deposit-label {
+            font-size: 9px;
+            color: var(--text3);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .min-deposit-amount {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--blue);
+            margin-top: 2px;
+        }
+
+        /* Rate Box */
+        .rate-box {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255,165,2,0.05);
+            border: 1px solid rgba(255,165,2,0.1);
+            border-radius: 8px;
+            margin-bottom: 14px;
+            font-size: 11px;
+            display: none;
+        }
+        .rate-box.show {
+            display: block;
+        }
+        .rate-value {
+            font-weight: 700;
+            color: var(--orange);
+        }
+
+        /* Conversion Box */
+        .conversion-box {
+            text-align: center;
+            padding: 10px;
+            background: rgba(46,213,115,0.05);
+            border: 1px solid rgba(46,213,115,0.1);
+            border-radius: 8px;
+            margin-bottom: 14px;
+            font-size: 13px;
+            display: none;
+        }
+        .conversion-box.show {
+            display: block;
+        }
+        .conversion-amount {
+            font-weight: 700;
+            color: var(--green);
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text3);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: block;
+        }
+        .form-input {
+            width: 100%;
+            padding: 13px 14px;
+            background: var(--input);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 15px;
+            outline: none;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+        .form-input:focus {
+            border-color: var(--blue);
+        }
+        .form-input.error {
+            border-color: var(--red);
+        }
+
+        .error-msg {
+            font-size: 10px;
+            color: var(--red);
+            margin-top: 4px;
+            display: none;
+            padding-left: 2px;
+        }
+        .error-msg.show {
+            display: block;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--blue), #2962FF);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(68,138,255,0.25);
+        }
+        .btn-primary:active {
+            transform: scale(0.96);
+        }
+
+        .contact-note {
+            text-align: center;
+            font-size: 10px;
+            color: var(--text4);
+        }
+        .contact-note a {
+            color: var(--blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .toast {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast-error {
+            background: var(--red);
+            color: white;
+        }
+        .toast-success {
+            background: var(--green);
+            color: white;
+        }
+
+        .watermark {
+            text-align: center;
+            color: rgba(255,255,255,0.06);
+            font-size: 10px;
+            padding: 10px;
+        }
+
+        @media (max-width: 400px) {
+            .card { padding: 16px 14px; }
+            .deposit-tab { font-size: 11px; padding: 8px; min-width: 70px; }
+            .min-deposit-amount { font-size: 17px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+        <h1><span>ADD</span> BALANCE</h1>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="main-content">
+        <div class="card">
+            
+            <!-- Method Tabs -->
+            <div class="deposit-tabs">
+                <div class="deposit-tab active" id="tabUpi" onclick="switchTab('upi')">
+                    <i class="fas fa-mobile-alt"></i> UPI
+                </div>
+                <div class="deposit-tab" id="tabUsdt" onclick="switchTab('usdt')">
+                    <i class="fas fa-coins"></i> USDT
+                </div>
+                <div class="deposit-tab" id="tabBkash" onclick="switchTab('bkash')">
+                    <i class="fas fa-credit-card"></i> Bkash
+                </div>
+            </div>
+
+            <!-- Min Deposit -->
+            <div class="min-deposit">
+                <div class="min-deposit-label">Minimum Deposit</div>
+                <div class="min-deposit-amount" id="minDeposit">₹0</div>
+            </div>
+
+            <!-- USDT Rate -->
+            <div class="rate-box" id="rateBox">
+                <i class="fas fa-chart-line"></i> 1 USDT = <span class="rate-value" id="liveRate">₹0</span>
+            </div>
+
+            <!-- Conversion -->
+            <div class="conversion-box" id="conversionBox">
+                <i class="fas fa-exchange-alt"></i> ≈ <span class="conversion-amount" id="conversionAmount">₹0</span> INR
+            </div>
+
+            <!-- Amount Input -->
+            <div class="form-group">
+                <label class="form-label" id="amountLabel">Enter Amount</label>
+                <input type="number" class="form-input" id="amountInput" placeholder="Enter amount">
+                <div class="error-msg" id="amountError">⚠ Below minimum deposit</div>
+            </div>
+
+            <button class="btn btn-primary" onclick="proceedToPay()">
+                💳 PROCEED TO PAY
+            </button>
+
+        </div>
+
+        <div class="contact-note">
+            Need help? <a href="#" onclick="window.open('https://t.me/+CNJHfpdP1ck0NDA1', '_blank')">Contact Support</a>
+        </div>
+    </div>
+
+    <div class="watermark">Revo Fixer © 2026</div>
+
+    <script>
+        // ============================================================
+        // 🔥 FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLz9LCMNsfb7tHJ2t-oocGjVD-nVox3GM",
+            authDomain: "revo-fixer-45a26.firebaseapp.com",
+            databaseURL: "https://revo-fixer-45a26-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "revo-fixer-45a26",
+            storageBucket: "revo-fixer-45a26.firebasestorage.app",
+            messagingSenderId: "496963115399",
+            appId: "1:496963115399:web:d38ec404edff64dfecdb22"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ============================================================
+        // 📱 CHECK USER
+        // ============================================================
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            window.location.href = 'index.html';
+        }
+
+        // ============================================================
+        // 📊 STATE
+        // ============================================================
+        let currentTab = 'upi';
+        let minDepositINR = 100;
+        let liveRate = 94.14;
+
+        // ============================================================
+        // 🔙 GO BACK
+        // ============================================================
+        function goBack() {
+            window.location.href = 'dashboard.html';
+        }
+
+        // ============================================================
+        // 📥 LOAD SETTINGS
+        // ============================================================
+        function loadSettings() {
+            db.ref('appSettings/paymentSettings').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    if (data.minDepositINR !== undefined) {
+                        minDepositINR = data.minDepositINR;
+                    }
+                    if (data.usdtRate) {
+                        liveRate = data.usdtRate;
+                        document.getElementById('liveRate').textContent = '₹' + liveRate.toLocaleString();
+                    }
+                    updateUI();
+                }
+            });
+        }
+
+        // ============================================================
+        // 📥 FETCH LIVE USDT RATE
+        // ============================================================
+        async function fetchLiveRate() {
+            try {
+                const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=inr');
+                const data = await res.json();
+                if (data.tether?.inr) {
+                    liveRate = data.tether.inr;
+                    document.getElementById('liveRate').textContent = '₹' + liveRate.toLocaleString();
+                    updateConversion();
+                }
+            } catch(e) {
+                console.log('Rate fetch failed, using default');
+            }
+        }
+
+        // ============================================================
+        // 🔄 SWITCH TAB
+        // ============================================================
+        function switchTab(tab) {
+            currentTab = tab;
+            document.getElementById('tabUpi').classList.toggle('active', tab === 'upi');
+            document.getElementById('tabUsdt').classList.toggle('active', tab === 'usdt');
+            document.getElementById('tabBkash').classList.toggle('active', tab === 'bkash');
+            
+            document.getElementById('rateBox').classList.toggle('show', tab === 'usdt');
+            document.getElementById('conversionBox').classList.toggle('show', tab === 'usdt');
+            
+            document.getElementById('amountInput').value = '';
+            document.getElementById('amountError').classList.remove('show');
+            updateUI();
+        }
+
+        // ============================================================
+        // 🎨 UPDATE UI
+        // ============================================================
+        function updateUI() {
+            const minDepositElement = document.getElementById('minDeposit');
+            const amountLabel = document.getElementById('amountLabel');
+            const amountInput = document.getElementById('amountInput');
+            
+            if (currentTab === 'upi') {
+                amountLabel.textContent = '₹ Enter Amount (INR)';
+                minDepositElement.textContent = '₹' + minDepositINR.toLocaleString();
+                amountInput.placeholder = minDepositINR > 0 ? 'Min: ₹' + minDepositINR.toLocaleString() : 'Enter amount';
+            } else if (currentTab === 'usdt') {
+                amountLabel.textContent = '$ Enter Amount (USDT)';
+                const minUsdt = minDepositINR > 0 ? Math.ceil((minDepositINR / liveRate) * 100) / 100 : 0;
+                minDepositElement.textContent = minUsdt + ' USDT' + (minDepositINR > 0 ? ' (≈ ₹' + minDepositINR.toLocaleString() + ')' : '');
+                amountInput.placeholder = minUsdt > 0 ? 'Min: ' + minUsdt + ' USDT' : 'Enter amount';
+            } else if (currentTab === 'bkash') {
+                amountLabel.textContent = '৳ Enter Amount (BDT)';
+                minDepositElement.textContent = '৳' + minDepositINR.toLocaleString();
+                amountInput.placeholder = minDepositINR > 0 ? 'Min: ৳' + minDepositINR.toLocaleString() : 'Enter amount';
+            }
+            updateConversion();
+        }
+
+        // ============================================================
+        // 🔄 UPDATE CONVERSION
+        // ============================================================
+        function updateConversion() {
+            const amt = parseFloat(document.getElementById('amountInput').value);
+            if (currentTab === 'usdt' && amt > 0 && liveRate > 0) {
+                document.getElementById('conversionAmount').textContent = '₹' + Math.round(amt * liveRate).toLocaleString();
+            } else {
+                document.getElementById('conversionAmount').textContent = '₹0';
+            }
+        }
+
+        // ============================================================
+        // 💬 TOAST
+        // ============================================================
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'toast ' + (isError ? 'toast-error' : 'toast-success') + ' show';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ============================================================
+        // 📤 PROCEED TO PAY
+        // ============================================================
+        function proceedToPay() {
+            const amount = parseFloat(document.getElementById('amountInput').value);
+            const errorDiv = document.getElementById('amountError');
+            const inputField = document.getElementById('amountInput');
+            
+            errorDiv.classList.remove('show');
+            inputField.classList.remove('error');
+            
+            if (!amount || amount <= 0) {
+                errorDiv.textContent = '⚠ Please enter a valid amount';
+                errorDiv.classList.add('show');
+                inputField.classList.add('error');
+                return;
+            }
+            
+            let isValid = false;
+            let convertedAmount = amount;
+            
+            if (currentTab === 'upi') {
+                if (minDepositINR > 0 && amount < minDepositINR) {
+                    errorDiv.textContent = '⚠ Minimum deposit: ₹' + minDepositINR.toLocaleString();
+                    errorDiv.classList.add('show');
+                    inputField.classList.add('error');
+                    return;
+                }
+                isValid = true;
+                convertedAmount = amount;
+            } 
+            else if (currentTab === 'usdt') {
+                const minUsdt = minDepositINR > 0 ? Math.ceil((minDepositINR / liveRate) * 100) / 100 : 0;
+                if (minUsdt > 0 && amount < minUsdt) {
+                    errorDiv.textContent = '⚠ Minimum deposit: ' + minUsdt + ' USDT';
+                    errorDiv.classList.add('show');
+                    inputField.classList.add('error');
+                    return;
+                }
+                isValid = true;
+                convertedAmount = Math.round(amount * liveRate);
+            }
+            else if (currentTab === 'bkash') {
+                if (minDepositINR > 0 && amount < minDepositINR) {
+                    errorDiv.textContent = '⚠ Minimum deposit: ৳' + minDepositINR.toLocaleString();
+                    errorDiv.classList.add('show');
+                    inputField.classList.add('error');
+                    return;
+                }
+                isValid = true;
+                convertedAmount = amount;
+            }
+            
+            if (isValid) {
+                localStorage.setItem('depositAmount', amount);
+                localStorage.setItem('depositMethod', currentTab);
+                localStorage.setItem('depositCurrency', currentTab === 'usdt' ? 'USDT' : (currentTab === 'bkash' ? 'BDT' : 'INR'));
+                localStorage.setItem('convertedAmount', convertedAmount);
+                localStorage.setItem('usdtRate', liveRate);
+                
+                window.location.href = 'payment-submit.html';
+            }
+        }
+
+        // ============================================================
+        // ⌨️ ENTER KEY SUPPORT
+        // ============================================================
+        document.getElementById('amountInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') proceedToPay();
+        });
+
+        document.getElementById('amountInput').addEventListener('input', updateConversion);
+
+        // ============================================================
+        // 🚀 INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('💰 Deposit page loaded');
+            loadSettings();
+            fetchLiveRate();
+            setInterval(fetchLiveRate, 60000);
+        });
+    </script>
+</body>
+</html>

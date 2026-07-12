@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | My Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --blue: #448AFF;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --orange: #ffa502;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding-bottom: 30px;
+        }
+
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            background: rgba(68,138,255,0.1);
+            border: 1px solid rgba(68,138,255,0.2);
+            color: var(--blue);
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        .back-btn:active {
+            transform: scale(0.92);
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .header h1 span {
+            color: var(--blue);
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        /* Profile Card */
+        .profile-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 28px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .profile-avatar {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, var(--blue), #2962FF);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 14px;
+            border: 3px solid rgba(68,138,255,0.3);
+        }
+        .profile-avatar i {
+            font-size: 42px;
+            color: white;
+        }
+        .profile-name {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        .profile-id {
+            font-size: 11px;
+            color: var(--text4);
+            font-family: monospace;
+            margin-bottom: 12px;
+        }
+        .profile-status {
+            display: inline-block;
+            padding: 4px 14px;
+            background: rgba(46,213,115,0.15);
+            border: 1px solid var(--green);
+            color: var(--green);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Info Cards */
+        .info-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 18px 20px;
+            margin-bottom: 14px;
+        }
+        .info-title {
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text2);
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .info-title i {
+            color: var(--blue);
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-size: 12px;
+            color: var(--text3);
+        }
+        .info-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
+        .info-value.blue {
+            color: var(--blue);
+        }
+        .info-value.green {
+            color: var(--green);
+        }
+        .info-value.red {
+            color: var(--red);
+        }
+
+        /* Package Card */
+        .package-card {
+            background: linear-gradient(135deg, rgba(68,138,255,0.08), rgba(0,0,0,0.2));
+            border: 1px solid rgba(68,138,255,0.15);
+            border-radius: 18px;
+            padding: 18px 20px;
+            margin-bottom: 14px;
+        }
+        .package-name {
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--blue);
+            margin-bottom: 8px;
+        }
+        .package-details {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text3);
+        }
+
+        /* Edit Button */
+        .edit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--blue), #2962FF);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            margin-top: 4px;
+        }
+        .edit-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 28px;
+            width: 100%;
+            max-width: 350px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 14px;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 14px;
+            margin-bottom: 18px;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .modal-input:focus {
+            border-color: var(--blue);
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .modal-btn:active {
+            transform: scale(0.95);
+        }
+        .modal-btn-save {
+            background: var(--blue);
+            color: white;
+        }
+        .modal-btn-cancel {
+            background: var(--input);
+            border: 1px solid var(--border);
+            color: var(--text3);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 1100;
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast.success {
+            background: var(--green);
+            color: white;
+        }
+        .toast.error {
+            background: var(--red);
+            color: white;
+        }
+
+        .watermark {
+            text-align: center;
+            color: rgba(255,255,255,0.06);
+            font-size: 10px;
+            padding: 10px;
+        }
+
+        @media (max-width: 400px) {
+            .container { padding: 12px; }
+            .profile-card { padding: 20px; }
+            .profile-avatar { width: 70px; height: 70px; }
+            .profile-avatar i { font-size: 32px; }
+            .profile-name { font-size: 17px; }
+            .info-card { padding: 14px 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+        <h1><span>MY</span> PROFILE</h1>
+    </div>
+
+    <div class="container">
+        <!-- Profile Card -->
+        <div class="profile-card">
+            <div class="profile-avatar">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <div class="profile-name" id="profileName">User</div>
+            <div class="profile-id" id="profileId">-</div>
+            <span class="profile-status" id="profileStatus">Active</span>
+        </div>
+
+        <!-- Account Info -->
+        <div class="info-card">
+            <div class="info-title">
+                <i class="fas fa-address-card"></i> Account Information
+            </div>
+            <div class="info-row">
+                <span class="info-label">Username</span>
+                <span class="info-value blue" id="displayUsername">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">User ID</span>
+                <span class="info-value" id="displayUserId">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Member Since</span>
+                <span class="info-value" id="memberSince">-</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Last Login</span>
+                <span class="info-value" id="lastLogin">-</span>
+            </div>
+        </div>
+
+        <!-- Package Info -->
+        <div class="info-card">
+            <div class="info-title">
+                <i class="fas fa-gift"></i> Current Package
+            </div>
+            <div id="packageInfo">
+                <div class="info-row">
+                    <span class="info-label">Package</span>
+                    <span class="info-value" id="packageName">No Active Package</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status</span>
+                    <span class="info-value" id="packageStatus">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Expires</span>
+                    <span class="info-value" id="packageExpiry">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wallet Info -->
+        <div class="info-card">
+            <div class="info-title">
+                <i class="fas fa-wallet"></i> Wallet
+            </div>
+            <div class="info-row">
+                <span class="info-label">Balance</span>
+                <span class="info-value green" id="walletBalance">₹0</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Total Deposited</span>
+                <span class="info-value" id="totalDeposited">₹0</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Total Withdrawn</span>
+                <span class="info-value" id="totalWithdrawn">₹0</span>
+            </div>
+        </div>
+
+        <!-- Edit Button -->
+        <button class="edit-btn" onclick="openEditModal()">
+            <i class="fas fa-pen"></i> EDIT PROFILE
+        </button>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-title">Edit Profile</div>
+            <input type="text" class="modal-input" id="editUsername" placeholder="Enter new username">
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-cancel" onclick="closeEditModal()">Cancel</button>
+                <button class="modal-btn modal-btn-save" onclick="saveProfile()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <div class="watermark">Revo Fixer © 2026</div>
+
+    <script>
+        // ============================================================
+        // 🔥 FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLz9LCMNsfb7tHJ2t-oocGjVD-nVox3GM",
+            authDomain: "revo-fixer-45a26.firebaseapp.com",
+            databaseURL: "https://revo-fixer-45a26-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "revo-fixer-45a26",
+            storageBucket: "revo-fixer-45a26.firebasestorage.app",
+            messagingSenderId: "496963115399",
+            appId: "1:496963115399:web:d38ec404edff64dfecdb22"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ============================================================
+        // 📱 CHECK USER
+        // ============================================================
+        const userId = localStorage.getItem('userId');
+        const licenseKey = localStorage.getItem('licenseKey');
+        
+        if (!userId || !licenseKey) {
+            window.location.href = 'index.html';
+        }
+
+        // ============================================================
+        // 📅 FORMAT DATE
+        // ============================================================
+        function formatDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = new Date(timestamp);
+            return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function formatDateTime(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = new Date(timestamp);
+            return date.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+        }
+
+        // ============================================================
+        // 📦 LOAD USER PROFILE
+        // ============================================================
+        function loadUserProfile() {
+            // Load from users node
+            db.ref('users/' + userId).on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    
+                    // Basic Info
+                    const username = data.username || 'User';
+                    document.getElementById('profileName').textContent = username;
+                    document.getElementById('profileId').textContent = userId.substring(0, 16) + '...';
+                    document.getElementById('displayUsername').textContent = username;
+                    document.getElementById('displayUserId').textContent = userId;
+                    document.getElementById('memberSince').textContent = formatDate(data.createdAt);
+                    document.getElementById('lastLogin').textContent = formatDateTime(data.lastLogin);
+                    
+                    // Wallet
+                    const balance = data.balance || 0;
+                    document.getElementById('walletBalance').textContent = '₹' + balance.toLocaleString();
+                    document.getElementById('totalDeposited').textContent = '₹' + (data.totalDeposited || 0).toLocaleString();
+                    document.getElementById('totalWithdrawn').textContent = '₹' + (data.totalWithdrawn || 0).toLocaleString();
+                    
+                    // Package Info
+                    if (data.package && data.package.name) {
+                        const pkg = data.package;
+                        document.getElementById('packageName').textContent = pkg.name;
+                        
+                        let statusText = pkg.status || 'Approved';
+                        let statusColor = 'blue';
+                        if (statusText === 'active') statusColor = 'green';
+                        else if (statusText === 'expired') statusColor = 'red';
+                        else if (statusText === 'pending') statusColor = 'orange';
+                        
+                        document.getElementById('packageStatus').innerHTML = 
+                            `<span style="color: var(--${statusColor})">${statusText.toUpperCase()}</span>`;
+                        
+                        if (pkg.endTime) {
+                            document.getElementById('packageExpiry').textContent = formatDateTime(pkg.endTime);
+                        } else {
+                            document.getElementById('packageExpiry').textContent = 'N/A';
+                        }
+                    } else {
+                        document.getElementById('packageName').textContent = 'No Active Package';
+                        document.getElementById('packageStatus').textContent = '-';
+                        document.getElementById('packageExpiry').textContent = '-';
+                    }
+                }
+            });
+
+            // Load from securityCodes for status
+            db.ref('securityCodes/' + licenseKey).on('value', (snap) => {
+                if (snap.exists()) {
+                    const data = snap.val();
+                    const status = data.status || 'active';
+                    const statusEl = document.getElementById('profileStatus');
+                    
+                    if (status === 'banned') {
+                        statusEl.textContent = 'BANNED';
+                        statusEl.style.borderColor = 'var(--red)';
+                        statusEl.style.color = 'var(--red)';
+                        statusEl.style.background = 'rgba(255,71,87,0.15)';
+                    } else if (status === 'active' || status === 'used') {
+                        statusEl.textContent = 'ACTIVE';
+                        statusEl.style.borderColor = 'var(--green)';
+                        statusEl.style.color = 'var(--green)';
+                        statusEl.style.background = 'rgba(46,213,115,0.15)';
+                    } else {
+                        statusEl.textContent = status.toUpperCase();
+                    }
+                }
+            });
+        }
+
+        // ============================================================
+        // ✏️ EDIT PROFILE
+        // ============================================================
+        function openEditModal() {
+            db.ref('users/' + userId + '/username').once('value').then((snapshot) => {
+                const currentUsername = snapshot.val() || '';
+                document.getElementById('editUsername').value = currentUsername;
+                document.getElementById('editModal').classList.add('show');
+            });
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('show');
+        }
+
+        function saveProfile() {
+            const newUsername = document.getElementById('editUsername').value.trim();
+            
+            if (!newUsername) {
+                showToast('Please enter a username', true);
+                return;
+            }
+            
+            if (newUsername.length < 3) {
+                showToast('Username must be at least 3 characters', true);
+                return;
+            }
+            
+            db.ref('users/' + userId).update({
+                username: newUsername
+            }).then(() => {
+                db.ref('users/' + userId + '/activity').push({
+                    text: '✏️ Profile updated',
+                    time: Date.now()
+                });
+                localStorage.setItem('username', newUsername);
+                showToast('✅ Profile updated successfully!');
+                closeEditModal();
+            }).catch((error) => {
+                showToast('Error: ' + error.message, true);
+            });
+        }
+
+        // ============================================================
+        // 💬 TOAST
+        // ============================================================
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'toast ' + (isError ? 'error' : 'success') + ' show';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ============================================================
+        // 🔙 GO BACK
+        // ============================================================
+        function goBack() {
+            window.location.href = 'dashboard.html';
+        }
+
+        // ============================================================
+        // ⌨️ ENTER KEY SUPPORT
+        // ============================================================
+        document.getElementById('editUsername').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') saveProfile();
+        });
+
+        // ============================================================
+        // 🚀 INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('👤 Profile page loaded');
+            loadUserProfile();
+        });
+    </script>
+</body>
+</html>

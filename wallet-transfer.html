@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Wallet Transfer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --blue: #448AFF;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --orange: #ffa502;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding-bottom: 30px;
+        }
+
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            background: rgba(68,138,255,0.1);
+            border: 1px solid rgba(68,138,255,0.2);
+            color: var(--blue);
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        .back-btn:active {
+            transform: scale(0.92);
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .header h1 span {
+            color: var(--blue);
+        }
+
+        .main-content {
+            padding: 16px;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+
+        /* Balance Card */
+        .balance-card {
+            background: rgba(68,138,255,0.05);
+            border: 1px solid rgba(68,138,255,0.12);
+            border-radius: 18px;
+            padding: 22px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .balance-label {
+            font-size: 11px;
+            color: var(--text3);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+        .balance-amount {
+            font-size: 36px;
+            font-weight: 900;
+            color: var(--blue);
+        }
+
+        /* Card */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text3);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title i {
+            color: var(--blue);
+        }
+
+        /* Connected Box */
+        .connected-box {
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px;
+        }
+        .connected-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 13px;
+        }
+        .connected-row:not(:last-child) {
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .connected-label {
+            color: var(--text3);
+            font-size: 10px;
+            width: 75px;
+            flex-shrink: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .connected-value {
+            color: var(--text);
+            font-weight: 500;
+            word-break: break-all;
+        }
+        .connected-value a {
+            color: var(--blue);
+            text-decoration: none;
+        }
+        .no-data {
+            color: var(--text4);
+            font-size: 12px;
+            text-align: center;
+            padding: 12px;
+        }
+
+        /* Transfer Button */
+        .transfer-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            background: linear-gradient(135deg, var(--blue), #2962FF);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(68,138,255,0.25);
+        }
+        .transfer-btn:active {
+            transform: scale(0.96);
+        }
+        .transfer-btn:disabled {
+            background: #1e2240;
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Notification - বাটনে ক্লিক করার পর দেখাবে */
+        .notif-toast {
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 14px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .notif-toast.show {
+            display: block;
+        }
+        .notif-success {
+            background: rgba(46,213,115,0.12);
+            border: 1px solid var(--green);
+            color: var(--green);
+        }
+        .notif-insufficient {
+            background: rgba(255,165,2,0.12);
+            border: 1px solid var(--orange);
+            color: var(--orange);
+        }
+        .notif-freeze {
+            background: rgba(255,71,87,0.12);
+            border: 1px solid var(--red);
+            color: var(--red);
+        }
+
+        /* Watermark */
+        .watermark {
+            text-align: center;
+            color: rgba(255,255,255,0.06);
+            font-size: 10px;
+            padding: 10px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast-success {
+            background: var(--green);
+            color: white;
+        }
+        .toast-error {
+            background: var(--red);
+            color: white;
+        }
+
+        @media (max-width: 400px) {
+            .balance-amount { font-size: 28px; }
+            .card { padding: 16px; }
+            .connected-row { font-size: 12px; flex-wrap: wrap; }
+            .connected-label { width: 65px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+        <h1><span>WALLET</span> TRANSFER</h1>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- MAIN -->
+    <div class="main-content">
+
+        <!-- Balance Card -->
+        <div class="balance-card">
+            <div class="balance-label">Available Balance</div>
+            <div class="balance-amount" id="displayBalance">₹0</div>
+        </div>
+
+        <!-- Connected Account -->
+        <div class="card">
+            <div class="section-title"><i class="fas fa-link"></i> Connected Account</div>
+            <div class="connected-box" id="connectedBox">
+                <div class="no-data">No account connected</div>
+            </div>
+        </div>
+
+        <!-- Transfer Button -->
+        <button class="transfer-btn" id="transferBtn" onclick="handleTransfer()">
+            <i class="fas fa-exchange-alt"></i> TRANSFER BALANCE
+        </button>
+
+        <!-- Notification - বাটনে ক্লিক করার পর দেখাবে -->
+        <div class="notif-toast" id="notifToast"></div>
+
+        <div class="watermark">Revo Fixer © 2026</div>
+
+    </div>
+
+    <script>
+        // ============================================================
+        // 🔥 FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLz9LCMNsfb7tHJ2t-oocGjVD-nVox3GM",
+            authDomain: "revo-fixer-45a26.firebaseapp.com",
+            databaseURL: "https://revo-fixer-45a26-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "revo-fixer-45a26",
+            storageBucket: "revo-fixer-45a26.firebasestorage.app",
+            messagingSenderId: "496963115399",
+            appId: "1:496963115399:web:d38ec404edff64dfecdb22"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ============================================================
+        // 📱 CHECK USER
+        // ============================================================
+        const userId = localStorage.getItem('userId');
+        if (!userId) {
+            window.location.href = 'index.html';
+        }
+
+        let userBalance = 0;
+        let transferStatus = 'success';
+        let username = '';
+        let minTransferAmount = 500; // Default
+
+        // ============================================================
+        // 🔙 GO BACK
+        // ============================================================
+        function goBack() {
+            window.location.href = 'dashboard.html';
+        }
+
+        // ============================================================
+        // 📥 LOAD MINIMUM TRANSFER AMOUNT (শুধু ব্যাকএন্ডে, UI তে দেখাবে না)
+        // ============================================================
+        function loadMinTransferAmount() {
+            db.ref('appSettings/walletTransfer/minAmount').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const amount = snapshot.val();
+                    if (amount && amount > 0) {
+                        minTransferAmount = amount;
+                    }
+                }
+                // UI তে দেখানো হচ্ছে না, শুধু ভেরিয়েবলে সেট করা হচ্ছে
+                console.log('📊 Minimum Transfer Amount:', minTransferAmount);
+            });
+        }
+
+        // ============================================================
+        // 📦 LOAD USER DATA
+        // ============================================================
+        function loadUserData() {
+            db.ref('users/' + userId).on('value', (snapshot) => {
+                if (!snapshot.exists()) return;
+                
+                const data = snapshot.val();
+                userBalance = data.balance || 0;
+                username = data.username || 'User';
+                
+                // Update balance display
+                document.getElementById('displayBalance').textContent = '₹' + userBalance.toLocaleString();
+                
+                // Display connections
+                displayConnections(data.connections);
+            });
+        }
+
+        // ============================================================
+        // 📊 DISPLAY CONNECTIONS
+        // ============================================================
+        function displayConnections(connections) {
+            const box = document.getElementById('connectedBox');
+            
+            if (!connections || (!connections.username && !connections.bettingLink)) {
+                box.innerHTML = '<div class="no-data">No account connected</div>';
+                return;
+            }
+            
+            let html = '';
+            if (connections.username) {
+                html += `
+                    <div class="connected-row">
+                        <span class="connected-label">Username</span>
+                        <span class="connected-value">${escapeHtml(connections.username)}</span>
+                    </div>
+                `;
+            }
+            if (connections.bettingLink) {
+                html += `
+                    <div class="connected-row">
+                        <span class="connected-label">Refer Link</span>
+                        <span class="connected-value"><a href="${connections.bettingLink}" target="_blank">${connections.bettingLink}</a></span>
+                    </div>
+                `;
+            }
+            box.innerHTML = html;
+        }
+
+        // ============================================================
+        // 📥 LOAD TRANSFER SETTINGS
+        // ============================================================
+        function loadTransferSettings() {
+            db.ref('appSettings/walletTransfer').on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    transferStatus = data.status || 'success';
+                    
+                    // Check if transfer is disabled
+                    if (data.enabled === false) {
+                        transferStatus = 'freeze';
+                    }
+                    
+                    // Load min amount if exists
+                    if (data.minAmount) {
+                        minTransferAmount = data.minAmount;
+                    }
+                }
+            });
+        }
+
+        // ============================================================
+        // 🔄 HANDLE TRANSFER (বাটনে ক্লিক করার পর)
+        // ============================================================
+        function handleTransfer() {
+            const btn = document.getElementById('transferBtn');
+            const notif = document.getElementById('notifToast');
+
+            btn.disabled = true;
+            notif.classList.remove('show');
+
+            setTimeout(() => {
+                btn.disabled = false;
+
+                // =============================================
+                // 1. Check if transfer is frozen
+                // =============================================
+                if (transferStatus === 'freeze') {
+                    notif.textContent = '❄️ Transfers are currently frozen. Contact @RevoAgent';
+                    notif.className = 'notif-toast notif-freeze show';
+                    return;
+                }
+
+                // =============================================
+                // 2. Check minimum transfer amount (Insufficient Balance)
+                // =============================================
+                if (userBalance < minTransferAmount) {
+                    notif.textContent = `⚠️ Insufficient Balance! Minimum transfer amount is ₹${minTransferAmount.toLocaleString()}. Your balance: ₹${userBalance.toLocaleString()}`;
+                    notif.className = 'notif-toast notif-insufficient show';
+                    return;
+                }
+
+                // =============================================
+                // 3. Check if connected account exists
+                // =============================================
+                db.ref('users/' + userId + '/connections').once('value').then((snap) => {
+                    const connections = snap.val();
+                    if (!connections || (!connections.username && !connections.bettingLink)) {
+                        notif.textContent = '⚠️ Please connect your casino account first.';
+                        notif.className = 'notif-toast notif-insufficient show';
+                        return;
+                    }
+
+                    // =============================================
+                    // 4. Success - Transfer approved
+                    // =============================================
+                    notif.textContent = `✅ Transfer successful! Amount: ₹${userBalance.toLocaleString()} will be processed within 24 hours.`;
+                    notif.className = 'notif-toast notif-success show';
+
+                    // Add activity log
+                    db.ref('users/' + userId + '/activity').push({
+                        text: `💰 Wallet transfer requested - Amount: ₹${userBalance.toLocaleString()}`,
+                        time: Date.now()
+                    });
+
+                    // Create transfer request in Firebase
+                    db.ref('transferRequests').push({
+                        userId: userId,
+                        username: username,
+                        amount: userBalance,
+                        minAmount: minTransferAmount,
+                        status: 'pending',
+                        createdAt: Date.now(),
+                        connections: connections
+                    });
+
+                    setTimeout(() => {
+                        notif.classList.remove('show');
+                    }, 5000);
+                });
+            }, 800);
+        }
+
+        // ============================================================
+        // 🛡️ ESCAPE HTML
+        // ============================================================
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // ============================================================
+        // 💬 TOAST
+        // ============================================================
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'toast ' + (isError ? 'toast-error' : 'toast-success') + ' show';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ============================================================
+        // 🚀 INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('💳 Wallet Transfer page loaded');
+            loadMinTransferAmount(); // শুধু ভেরিয়েবলে সেট হবে, UI তে দেখাবে না
+            loadUserData();
+            loadTransferSettings();
+        });
+    </script>
+</body>
+</html>
