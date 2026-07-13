@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --blue: #448AFF;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --orange: #ffa502;
+            --gold: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Background Effects */
+        .bg-effect {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse at 20% 50%, rgba(68,138,255,0.04), transparent 50%),
+                        radial-gradient(ellipse at 80% 30%, rgba(255,215,0,0.03), transparent 40%),
+                        radial-gradient(ellipse at 50% 80%, rgba(68,138,255,0.02), transparent 30%);
+            animation: bgFloat 20s ease-in-out infinite;
+        }
+        @keyframes bgFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            33% { transform: translate(2%, -2%) rotate(2deg) scale(1.02); }
+            66% { transform: translate(-1%, 1%) rotate(-1deg) scale(0.98); }
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.15;
+            animation: orbFloat 25s ease-in-out infinite;
+        }
+        .orb-1 { width: 400px; height: 400px; background: #448AFF; top: -100px; right: -100px; animation-delay: 0s; }
+        .orb-2 { width: 300px; height: 300px; background: #FFD700; bottom: -80px; left: -80px; animation-delay: -8s; }
+        @keyframes orbFloat {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(40px, -30px) scale(1.1); }
+            66% { transform: translate(-30px, 20px) scale(0.9); }
+        }
+
+        .login-card {
+            position: relative;
+            z-index: 1;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 40px 35px;
+            width: 100%;
+            max-width: 450px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== UPDATE OVERLAY ===== */
+        .update-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        .update-overlay.show {
+            display: flex;
+        }
+        .update-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            padding: 40px 30px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            animation: scaleIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.92); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .update-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(68,138,255,0.12);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            border: 2px solid rgba(68,138,255,0.2);
+        }
+        .update-icon i {
+            font-size: 36px;
+            color: var(--blue);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+        .update-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+        .update-title span {
+            color: var(--blue);
+        }
+        .update-subtitle {
+            font-size: 13px;
+            color: var(--text3);
+            margin-bottom: 6px;
+            line-height: 1.5;
+        }
+        .update-version {
+            font-size: 11px;
+            color: var(--text4);
+            margin-bottom: 24px;
+            display: block;
+        }
+        .update-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .update-btn-primary {
+            background: linear-gradient(135deg, var(--blue), #2962FF);
+            color: #fff;
+            box-shadow: 0 6px 20px rgba(68,138,255,0.3);
+        }
+        .update-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(68,138,255,0.45);
+        }
+        .update-btn-primary:active {
+            transform: scale(0.97);
+        }
+        .update-btn-secondary {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            color: var(--text2);
+        }
+        .update-btn-secondary:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(68,138,255,0.2);
+        }
+        .update-btn-secondary i {
+            color: var(--blue);
+        }
+        .update-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 14px 0;
+            color: var(--text4);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .update-divider::before,
+        .update-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* ===== LOGIN CARD ===== */
+        .logo-area {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo-img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin: 0 auto 15px;
+            display: block;
+        }
+        .app-name {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text);
+        }
+        .app-name span {
+            color: var(--blue);
+        }
+        .app-tagline {
+            font-size: 12px;
+            color: var(--blue);
+            margin-top: 5px;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .info-box {
+            background: rgba(68,138,255,0.08);
+            border: 1px solid rgba(68,138,255,0.15);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .info-box i {
+            color: var(--blue);
+            font-size: 14px;
+        }
+        .info-box span {
+            font-size: 12px;
+            color: var(--text2);
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text3);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+        }
+        .input-wrapper input {
+            flex: 1;
+            padding: 14px 16px;
+            background: var(--input);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 14px;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+        .input-wrapper input:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+        .input-wrapper input::placeholder {
+            color: var(--text4);
+        }
+        .paste-btn {
+            padding: 14px 20px;
+            background: rgba(68,138,255,0.1);
+            border: 1px solid rgba(68,138,255,0.2);
+            border-radius: 12px;
+            color: var(--blue);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        .paste-btn:hover {
+            background: rgba(68,138,255,0.2);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--blue), #2962FF);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 12px;
+        }
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(68,138,255,0.3);
+        }
+        .login-btn:active {
+            transform: scale(0.97);
+        }
+
+        .package-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 12px;
+        }
+        .package-btn:hover {
+            border-color: var(--blue);
+            background: rgba(68,138,255,0.05);
+        }
+
+        /* ===== CONTACT SUPPORT BUTTON ===== */
+        .support-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #0088cc, #006699);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .support-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,136,204,0.3);
+        }
+        .support-btn:active {
+            transform: scale(0.97);
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 10px;
+            display: none;
+            text-align: center;
+            font-size: 12px;
+        }
+        .message.error {
+            background: rgba(255,71,87,0.1);
+            border: 1px solid var(--red);
+            color: var(--red);
+        }
+        .message.success {
+            background: rgba(46,213,115,0.1);
+            border: 1px solid var(--green);
+            color: var(--green);
+        }
+
+        .watermark {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            color: rgba(255,255,255,0.08);
+            font-size: 10px;
+            z-index: 100;
+        }
+        .watermark a {
+            color: rgba(255,255,255,0.2);
+            text-decoration: none;
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 30px 25px;
+            }
+            .paste-btn {
+                padding: 14px 16px;
+            }
+            .update-card {
+                padding: 30px 20px;
+            }
+            .update-title {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== BACKGROUND EFFECTS ===== -->
+    <div class="bg-effect"></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <!-- ===== UPDATE OVERLAY ===== -->
+    <div class="update-overlay" id="updateOverlay">
+        <div class="update-card">
+            <div class="update-icon">
+                <i class="fas fa-download"></i>
+            </div>
+            <div class="update-title"><span>UPDATE</span> REQUIRED</div>
+            <div class="update-subtitle" id="updateMessage">New version available! Please update to continue using the app.</div>
+            <span class="update-version" id="updateVersionText">Version 2.0.0 • Revo Fixer</span>
+
+            <button class="update-btn update-btn-primary" id="updateNowBtn" onclick="handleUpdateNow()">
+                <i class="fas fa-arrow-down"></i> Update Now
+            </button>
+
+            <div class="update-divider">or</div>
+
+            <button class="update-btn update-btn-secondary" onclick="joinTelegram()">
+                <i class="fab fa-telegram"></i> Join Telegram Channel
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== LOGIN CARD ===== -->
+    <div class="login-card" id="loginCard">
+        <div class="logo-area">
+            <img src="assets/images/logo.png" alt="Logo" class="logo-img" 
+                 onerror="this.style.display='none'; this.outerHTML='<div style=\'width:80px;height:80px;background:linear-gradient(135deg,#448AFF,#2962FF);border-radius:20px;margin:0 auto 15px;display:flex;align-items:center;justify-content:center;\'><i style=\'font-size:40px;color:white;\' class=\'fas fa-crown\'></i></div>'">
+            <div class="app-name"><span>REVO</span> FIXER</div>
+            <div class="app-tagline">⚡ CRAZY TIME REVO FIXER ⚡</div>
+        </div>
+
+        <div class="info-box">
+            <i class="fas fa-info-circle"></i>
+            <span>Enter your valid license key to continue</span>
+        </div>
+
+        <div class="input-group">
+            <label class="input-label">LICENSE KEY</label>
+            <div class="input-wrapper">
+                <input type="password" id="licenseKey" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="25" autocomplete="off">
+                <button class="paste-btn" onclick="pasteFromClipboard()">
+                    <i class="fas fa-paste"></i> Paste
+                </button>
+            </div>
+        </div>
+
+        <button class="login-btn" onclick="login()">
+            <i class="fas fa-key"></i> Activate License
+        </button>
+
+        <button class="package-btn" onclick="window.location.href='packages.html'">
+            <i class="fas fa-shopping-cart"></i> Buy License
+        </button>
+
+        <!-- ===== CONTACT SUPPORT BUTTON ===== -->
+        <button class="support-btn" id="supportBtn" onclick="openSupport()">
+            <i class="fab fa-telegram"></i> Contact Support
+        </button>
+
+        <div id="message" class="message"></div>
+    </div>
+
+    <div class="watermark">
+        Developer <a href="https://t.me/RevoAgent" target="_blank">@RevoAgent</a>
+    </div>
+
+    <script>
+        // ============================================================
+        // 🔥 FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLz9LCMNsfb7tHJ2t-oocGjVD-nVox3GM",
+            authDomain: "revo-fixer-45a26.firebaseapp.com",
+            databaseURL: "https://revo-fixer-45a26-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "revo-fixer-45a26",
+            storageBucket: "revo-fixer-45a26.firebasestorage.app",
+            messagingSenderId: "496963115399",
+            appId: "1:496963115399:web:d38ec404edff64dfecdb22"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // ============================================================
+        // 📱 APP VERSION & FORCE UPDATE
+        // ============================================================
+        const CURRENT_APP_VERSION = "1.0.0";
+        let downloadLink = "";
+        let telegramLink = "https://t.me/+CNJHfpdP1ck0NDA1";
+
+        // ============================================================
+        // 📥 LOAD SETTINGS FROM FIREBASE
+        // ============================================================
+        function loadSettings() {
+            // Load App Settings (Telegram Link, Force Update, etc.)
+            db.ref('appSettings').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    // Telegram Link
+                    if (data.telegramLink) {
+                        telegramLink = data.telegramLink;
+                    }
+                    
+                    // Force Update
+                    const forceUpdate = data.forceUpdate || false;
+                    const latestVersion = data.appVersion || "1.0.0";
+                    downloadLink = data.downloadLink || "";
+                    const updateMessage = data.updateMessage || "New version available! Please update to continue using the app.";
+                    
+                    document.getElementById('updateVersionText').textContent = `Version ${latestVersion} • Revo Fixer`;
+                    document.getElementById('updateMessage').textContent = updateMessage;
+                    
+                    // Check if update is required
+                    if (forceUpdate === true && latestVersion !== CURRENT_APP_VERSION) {
+                        showUpdateOverlay();
+                    } else {
+                        hideUpdateOverlay();
+                    }
+                }
+            }, (error) => {
+                console.error('❌ Error loading settings:', error);
+            });
+
+            // Load Telegram Link from separate node (backup)
+            db.ref('appSettings/telegramLink').once('value', (snap) => {
+                if (snap.exists() && snap.val()) {
+                    telegramLink = snap.val();
+                }
+            });
+        }
+
+        // ============================================================
+        // 🔄 UPDATE OVERLAY
+        // ============================================================
+        function showUpdateOverlay() {
+            document.getElementById('updateOverlay').classList.add('show');
+            document.getElementById('loginCard').style.opacity = '0.5';
+            document.getElementById('loginCard').style.pointerEvents = 'none';
+        }
+
+        function hideUpdateOverlay() {
+            document.getElementById('updateOverlay').classList.remove('show');
+            document.getElementById('loginCard').style.opacity = '1';
+            document.getElementById('loginCard').style.pointerEvents = 'auto';
+        }
+
+        // ============================================================
+        // 🔄 UPDATE NOW HANDLER
+        // ============================================================
+        function handleUpdateNow() {
+            if (downloadLink) {
+                window.open(downloadLink, '_blank');
+            } else {
+                showMessage('Download link not available. Please join Telegram channel.', 'error');
+            }
+        }
+
+        // ============================================================
+        // 📱 JOIN TELEGRAM / CONTACT SUPPORT
+        // ============================================================
+        function openSupport() {
+            window.open(telegramLink, '_blank');
+        }
+
+        function joinTelegram() {
+            window.open(telegramLink, '_blank');
+        }
+
+        // ============================================================
+        // 📋 PASTE FROM CLIPBOARD
+        // ============================================================
+        function pasteFromClipboard() {
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                navigator.clipboard.readText().then(text => {
+                    document.getElementById('licenseKey').value = text.trim().toUpperCase();
+                    showMessage('✅ License key pasted!', 'success');
+                }).catch(() => {
+                    showMessage('Press Ctrl+V to paste', 'error');
+                });
+            } else {
+                showMessage('Press Ctrl+V to paste', 'error');
+            }
+        }
+
+        // ============================================================
+        // 💬 SHOW MESSAGE
+        // ============================================================
+        function showMessage(msg, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.className = `message ${type}`;
+            msgDiv.textContent = msg;
+            msgDiv.style.display = 'block';
+            setTimeout(() => {
+                msgDiv.style.display = 'none';
+            }, 4000);
+        }
+
+        // ============================================================
+        // 📱 DEVICE ID
+        // ============================================================
+        function getDeviceId() {
+            let deviceId = localStorage.getItem('deviceId');
+            if (!deviceId) {
+                deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10);
+                localStorage.setItem('deviceId', deviceId);
+            }
+            return deviceId;
+        }
+
+        // ============================================================
+        // 🔐 LOGIN
+        // ============================================================
+        function login() {
+            const licenseKey = document.getElementById('licenseKey').value.trim().toUpperCase();
+            const deviceId = getDeviceId();
+
+            if (!licenseKey) {
+                showMessage('Please enter license key!', 'error');
+                return;
+            }
+
+            showMessage('Verifying...', 'success');
+
+            db.ref(`securityCodes/${licenseKey}`).once('value').then(snapshot => {
+                if (!snapshot.exists()) {
+                    showMessage('Invalid license key!', 'error');
+                    return;
+                }
+
+                const keyData = snapshot.val();
+
+                if (keyData.status === 'banned') {
+                    showMessage('License key blocked. Contact support.', 'error');
+                    return;
+                }
+
+                if (keyData.status === 'reset_required') {
+                    showMessage('Your key requires reset. Contact @RevoAgent to reset your key', 'error');
+                    return;
+                }
+
+                let deviceLogins = keyData.deviceLogins || {};
+                let currentDeviceAttempts = deviceLogins[deviceId] || 0;
+                let userId = keyData.usedBy;
+                const now = Date.now();
+
+                if (currentDeviceAttempts >= 3) {
+                    db.ref(`securityCodes/${licenseKey}`).update({
+                        status: 'reset_required',
+                        resetRequestedAt: now,
+                        resetRequestedBy: deviceId
+                    });
+                    showMessage('Your key is used on another device. Contact @RevoAgent to reset your key', 'error');
+                    return;
+                }
+
+                if (!userId) {
+                    userId = 'user_' + now + '_' + Math.random().toString(36).substring(2, 8);
+                    
+                    const packageInfo = keyData.package || { 
+                        name: '1 Hour Package', 
+                        price: 2000, 
+                        hours: 1
+                    };
+                    
+                    const endTime = now + (packageInfo.hours * 60 * 60 * 1000);
+
+                    const userData = {
+                        username: 'User',
+                        balance: 0,
+                        createdAt: now,
+                        package: {
+                            name: packageInfo.name,
+                            price: packageInfo.price,
+                            hours: packageInfo.hours,
+                            status: 'approved',
+                            startTime: now,
+                            endTime: endTime
+                        },
+                        usedKey: licenseKey,
+                        deviceId: deviceId,
+                        lastLogin: now,
+                        activity: [{
+                            text: '✅ Account created with license key',
+                            time: now
+                        }]
+                    };
+                    
+                    db.ref(`users/${userId}`).set(userData);
+
+                    deviceLogins[deviceId] = 1;
+                    db.ref(`securityCodes/${licenseKey}`).update({
+                        status: 'used',
+                        usedBy: userId,
+                        usedAt: now,
+                        deviceLogins: deviceLogins,
+                        totalDevices: Object.keys(deviceLogins).length
+                    });
+                    
+                    showMessage('✅ License activated! Welcome!', 'success');
+                    
+                } else {
+                    if (deviceLogins[deviceId] === undefined) {
+                        deviceLogins[deviceId] = 1;
+                    } else {
+                        deviceLogins[deviceId] = currentDeviceAttempts + 1;
+                    }
+                    
+                    db.ref(`securityCodes/${licenseKey}`).update({
+                        lastLogin: now,
+                        deviceLogins: deviceLogins,
+                        lastDeviceId: deviceId
+                    });
+
+                    db.ref(`users/${userId}`).update({
+                        lastLogin: now,
+                        deviceId: deviceId
+                    });
+                    
+                    db.ref(`users/${userId}/activity`).push({
+                        text: `🔑 Login attempt #${deviceLogins[deviceId]} from this device`,
+                        time: now
+                    });
+                    
+                    showMessage('✅ Login successful!', 'success');
+                }
+
+                localStorage.setItem('userId', userId);
+                localStorage.setItem('licenseKey', licenseKey);
+
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+
+            }).catch(error => {
+                console.error('Login error:', error);
+                showMessage('Error: ' + error.message, 'error');
+            });
+        }
+
+        // ============================================================
+        // ⌨️ ENTER KEY SUPPORT
+        // ============================================================
+        document.getElementById('licenseKey').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') login();
+        });
+
+        // ============================================================
+        // 🚀 INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Login page loaded!');
+            console.log('📱 Current App Version:', CURRENT_APP_VERSION);
+            
+            loadSettings();
+        });
+    </script>
+</body>
+</html>
