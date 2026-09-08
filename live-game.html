@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revo Fixer | Crazy Time Live</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0b14;
+            --card: #141827;
+            --border: #1e2240;
+            --input: #0d1020;
+            --blue: #448AFF;
+            --text: #ffffff;
+            --text2: #bcc6e0;
+            --text3: #8899cc;
+            --text4: #5a6a99;
+            --green: #2ed573;
+            --red: #ff4757;
+            --gold: #FFD700;
+            --orange: #ffa502;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding-bottom: 30px;
+        }
+
+        .header {
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .back-btn {
+            background: rgba(68,138,255,0.1);
+            border: 1px solid rgba(68,138,255,0.2);
+            color: var(--blue);
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        .back-btn:active {
+            transform: scale(0.92);
+        }
+        .header h1 {
+            font-size: 16px;
+            font-weight: 800;
+        }
+        .header h1 span {
+            color: var(--blue);
+        }
+.watermark {
+            position: fixed;
+            bottom: 12px;
+            right: 14px;
+            color: rgba(255,255,255,0.06);
+            font-size: 9px;
+            z-index: 100;
+        }
+        .watermark a {
+            color: rgba(255,255,255,0.15);
+            text-decoration: none;
+        }
+
+        .container {
+            max-width: 550px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 16px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 18px;
+        }
+        .hero-section h1 {
+            font-size: 20px;
+            font-weight: 800;
+        }
+        .hero-section h1 span {
+            color: var(--blue);
+        }
+        .hero-section p {
+            font-size: 11px;
+            color: var(--text3);
+            margin-top: 4px;
+        }
+
+        .signal-container {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 24px 18px;
+            margin-bottom: 16px;
+        }
+
+        .signal-label {
+            text-align: center;
+            color: var(--blue);
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+.live-display {
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .placeholder-box {
+            text-align: center;
+            padding: 36px;
+            background: rgba(68,138,255,0.03);
+            border-radius: 20px;
+            width: 100%;
+            border: 1px dashed var(--border);
+        }
+        .placeholder-box i {
+            font-size: 44px;
+            color: var(--blue);
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+        .placeholder-box .main-text {
+            color: var(--blue);
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .placeholder-box .sub-text {
+            color: var(--text4);
+            font-size: 12px;
+        }
+
+        .signal-card {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .signal-image-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .signal-image {
+            width: 240px;
+            height: 120px;
+            object-fit: contain;
+            transition: all 0.3s;
+        }
+
+        .signal-card.signal-entering .signal-image-frame {
+            animation: proSignalEnter 520ms cubic-bezier(.16,1,.3,1) both;
+        }
+
+        .signal-card.signal-entering .signal-image-glow {
+            animation: proGlowEnter 620ms cubic-bezier(.16,1,.3,1) both;
+        }
+
+        .signal-card.signal-entering .signal-name {
+            animation: proNameEnter 520ms 80ms cubic-bezier(.16,1,.3,1) both;
+        }
+
+        .signal-card.signal-leaving .signal-image-frame {
+            animation: proSignalExit 300ms cubic-bezier(.4,0,1,1) both;
+        }
+
+        .signal-card.signal-leaving .signal-image-glow {
+            animation: proGlowExit 300ms ease-in both;
+        }
+
+        .signal-card.signal-leaving .signal-name {
+            animation: proNameExit 240ms ease-in both;
+        }
+
+        @keyframes proSignalEnter {
+            0% {
+                opacity: 0;
+                transform: scale(.72) translateY(16px);
+                filter: brightness(.1);
+            }
+            55% {
+                opacity: 1;
+                transform: scale(1.07) translateY(-2px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+                filter: brightness(1);
+            }
+        }
+
+        @keyframes proGlowEnter {
+            0% { opacity: 0; transform: scale(.65); }
+            55% { opacity: 1; transform: scale(1.22); }
+            100% { opacity: .45; transform: scale(.98); }
+        }
+
+        @keyframes proNameEnter {
+            0% { opacity: 0; transform: translateY(10px) scale(.92); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes proSignalExit {
+            0% { opacity: 1; transform: scale(1); filter: brightness(1); }
+            100% { opacity: 0; transform: scale(.76) translateY(-10px); filter: brightness(.05); }
+        }
+
+        @keyframes proGlowExit {
+            0% { opacity: .9; transform: scale(1.05); }
+            100% { opacity: 0; transform: scale(.70); }
+        }
+
+        @keyframes proNameExit {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(-8px); }
+        }
+
+        .signal-name {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--gold);
+            margin-top: 12px;
+            text-shadow: 0 0 15px rgba(255,215,0,0.25);
+        }
+
+        .confidence-display {
+            margin-top: 16px;
+            width: 100%;
+        }
+        .confidence-text {
+            font-size: 11px;
+            color: var(--text3);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .confidence-text i {
+            color: var(--blue);
+        }
+        .confidence-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--input);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue), #2962FF);
+            width: 0%;
+            transition: width 0.8s ease;
+            border-radius: 10px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--blue), #2962FF);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(68,138,255,0.25);
+        }
+        .btn-secondary {
+            background: var(--input);
+            border: 1px solid var(--border);
+            color: var(--text2);
+        }
+
+        .stats-container {
+            background:
+                radial-gradient(circle at 12% 0%, rgba(68,138,255,.08), transparent 36%),
+                linear-gradient(145deg, rgba(20,25,42,.96), rgba(12,16,29,.98));
+            border: 1px solid rgba(120,150,220,.13);
+            border-radius: 18px;
+            padding: 14px;
+            box-shadow: 0 12px 28px rgba(0,0,0,.18);
+        }
+        .stats-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .stats-title {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: .8px;
+            color: var(--text);
+        }
+        .stats-live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #2ed573;
+            box-shadow: 0 0 10px rgba(46,213,115,.85);
+            animation: statsLivePulse 1.2s ease-in-out infinite;
+        }
+        @keyframes statsLivePulse {
+            50% { opacity: .35; transform: scale(.72); }
+        }
+        .stats-status {
+            font-size: 8px;
+            font-weight: 900;
+            letter-spacing: .6px;
+            padding: 4px 7px;
+            border-radius: 999px;
+            color: #2ed573;
+            background: rgba(46,213,115,.07);
+            border: 1px solid rgba(46,213,115,.20);
+        }
+        .stats-status.offline {
+            color: #ffb142;
+            background: rgba(255,177,66,.07);
+            border-color: rgba(255,177,66,.20);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .stat-item {
+            text-align: center;
+            padding: 11px 5px 9px;
+            border-radius: 13px;
+            background: rgba(255,255,255,.025);
+            border: 1px solid rgba(255,255,255,.045);
+        }
+        .stat-value {
+            min-height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            line-height: 1.05;
+            font-weight: 900;
+            color: #72a5ff;
+            margin-bottom: 5px;
+            text-shadow: 0 0 12px rgba(68,138,255,.18);
+        }
+        .stat-label {
+            font-size: 8px;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: .7px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .stats-foot {
+            margin-top: 10px;
+            padding-top: 9px;
+            border-top: 1px solid rgba(255,255,255,.045);
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            font-size: 8px;
+            color: var(--text3);
+        }
+
+        .loading-spinner {
+            width: 44px;
+            height: 44px;
+            border: 3px solid rgba(68,138,255,0.15);
+            border-top: 3px solid var(--blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 16px auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast-success {
+            background: var(--green);
+            color: white;
+        }
+        .toast-error {
+            background: var(--red);
+            color: white;
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 12px; }
+            .signal-image { width: 240px; height: 120px; }
+            .signal-name { font-size: 20px; }
+            .stat-value { font-size: 15px; }
+            .hero-section h1 { font-size: 17px; }
+            .signal-container { padding: 18px 14px; }
+        }
+
+        .auth-check-cover {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #080b14;
+            transition: opacity .25s ease;
+        }
+        .auth-check-cover.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .auth-check-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 13px 16px;
+            border-radius: 14px;
+            color: #dbe4f4;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .5px;
+            background: rgba(18,23,40,.98);
+            border: 1px solid rgba(110,145,220,.14);
+            box-shadow: 0 14px 32px rgba(0,0,0,.30);
+        }
+        .auth-check-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,.13);
+            border-top-color: #4f8cff;
+            border-radius: 50%;
+            animation: authSpin .75s linear infinite;
+        }
+        @keyframes authSpin { to { transform: rotate(360deg); } }
+
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body>
+    <div class="auth-check-cover" id="authCheckCover">
+        <div class="auth-check-box">
+            <div class="auth-check-spinner"></div>
+            CHECKING LOGIN...
+        </div>
+    </div>
+
+    <div class="header">
+        <button class="back-btn" onclick="goBack()"><i class="fas fa-arrow-left"></i></button>
+        <h1><span>CRAZY TIME</span> LIVE</h1>
+    </div>
+<div class="toast" id="toast"></div>
+
+    <div class="watermark">
+        Developer <a href="https://t.me/RevoAgent" target="_blank">@RevoAgent</a>
+    </div>
+
+    <div class="container">
+        <div class="hero-section">
+            <h1><span>CRAZY TIME</span> REVO FIXER</h1>
+            <p>⚡ Live Predictions • High Accuracy ⚡</p>
+        </div>
+
+        <div class="signal-container">
+            <div class="signal-label">
+                <i class="fas fa-bolt"></i> CURRENT PREDICTION
+            </div>
+
+            <div class="live-display" id="liveDisplay">
+                <div id="placeholderBox" class="placeholder-box">
+                    <i class="fas fa-hand-pointer"></i>
+                    <div class="main-text">Click Get Signal To Start Live Session</div>
+                    <div class="sub-text">Get instant predictions</div>
+                </div>
+
+                <div id="signalCard" class="signal-card">
+                    <div class="signal-image-container">
+                        <div class="signal-image-frame">
+                            <div id="signalImageGlow" class="signal-image-glow"></div>
+                            <img id="signalImage" class="signal-image" src="" alt="Signal">
+                        </div>
+                        <div class="signal-name" id="signalName"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="confidence-display">
+                <div class="confidence-text" id="confidenceText">
+                    <i class="fas fa-chart-line"></i> AI Confidence: 0%
+                </div>
+                <div class="confidence-bar">
+                    <div class="confidence-fill" id="confidenceFill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-primary" id="predictBtn" onclick="generatePrediction()">
+                <i class="fas fa-magic"></i> GET SIGNAL
+            </button>
+            <button class="btn btn-secondary" id="refreshBtn" onclick="refreshPrediction()">
+                <i class="fas fa-sync-alt"></i> REFRESH
+            </button>
+        </div>
+
+        <div class="stats-container">
+            <div class="stats-header">
+                <div class="stats-title">
+                    <span class="stats-live-dot"></span>
+                    CRAZY TIME STATISTICS
+                </div>
+                <div class="stats-status" id="ctStatsStatus">CONNECTING</div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="ctLatestResult">--</div>
+                    <div class="stat-label">LATEST</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="ctTrackedSpins">--</div>
+                    <div class="stat-label">SPINS</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="ctBonusHits">--</div>
+                    <div class="stat-label">BONUS</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="ctBonusRate">--</div>
+                    <div class="stat-label">RATE</div>
+                </div>
+            </div>
+
+            <div class="stats-foot">
+                <span>Crazy Time live history</span>
+                <span id="ctStatsUpdated">Waiting...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 🎮 GAME IMAGES
+        // ============================================================
+        const gameImages = {
+            '1': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539269/one-card_r0ffuy.png',
+            '2': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539364/two-card_ayl9lu.png',
+            '5': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539403/five-card_msp0cr.png',
+            '10': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539416/ten-card_cx3cvj.png',
+            'PACHINKO': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539441/pachiko-card_zxiw7r.png',
+            'COIN FLIP': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539429/coin-flip-card_kbbg7m.png',
+            'CASH HUNT': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539519/cash-hunt-card_jp8hr3.png',
+            'CRAZY TIME': 'https://res.cloudinary.com/dw72p48ir/image/upload/v1773539531/crazy-time-card_dftfw3.png'
+        };
+
+        // ============================================================
+        // 🔥 FIREBASE LIVE SIGNAL CONTROL
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLz9LCMNsfb7tHJ2t-oocGjVD-nVox3GM",
+            authDomain: "revo-fixer-45a26.firebaseapp.com",
+            databaseURL: "https://revo-fixer-45a26-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "revo-fixer-45a26",
+            storageBucket: "revo-fixer-45a26.firebasestorage.app",
+            messagingSenderId: "496963115399",
+            appId: "1:496963115399:web:d38ec404edff64dfecdb22"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const signalDb = firebase.database();
+
+        // ============================================================
+        // 🔐 LOGIN / LICENSE CHECK
+        // ============================================================
+        const loggedUserId = localStorage.getItem('userId');
+        const loggedLicenseKey = localStorage.getItem('licenseKey');
+        const authCheckCover = document.getElementById('authCheckCover');
+        let loginVerified = false;
+
+        function redirectToLogin() {
+            localStorage.removeItem('userId');
+            localStorage.removeItem('licenseKey');
+            localStorage.removeItem('lastSignal');
+            window.location.replace('index.html');
+        }
+
+        function unlockLiveGame() {
+            if (loginVerified) return;
+            loginVerified = true;
+
+            if (authCheckCover) {
+                authCheckCover.classList.add('hide');
+                setTimeout(() => authCheckCover.remove(), 280);
+            }
+        }
+
+        async function verifyLiveGameLogin() {
+            if (!loggedUserId || !loggedLicenseKey) {
+                redirectToLogin();
+                return;
+            }
+
+            try {
+                const snap = await signalDb.ref('securityCodes/' + loggedLicenseKey).once('value');
+
+                if (!snap.exists()) {
+                    redirectToLogin();
+                    return;
+                }
+
+                const data = snap.val() || {};
+                const status = String(data.status || '').toLowerCase();
+
+                if (['banned', 'blocked', 'expired', 'disabled'].includes(status)) {
+                    redirectToLogin();
+                    return;
+                }
+
+                unlockLiveGame();
+            } catch (err) {
+                console.error('Login check error:', err);
+                redirectToLogin();
+            }
+        }
+
+        verifyLiveGameLogin();
+
+        // Realtime license check while user stays on this page
+        if (loggedLicenseKey) {
+            signalDb.ref('securityCodes/' + loggedLicenseKey).on('value', snap => {
+                if (!snap.exists()) {
+                    redirectToLogin();
+                    return;
+                }
+
+                const data = snap.val() || {};
+                const status = String(data.status || '').toLowerCase();
+
+                if (['banned', 'blocked', 'expired', 'disabled'].includes(status)) {
+                    redirectToLogin();
+                }
+            });
+        }
+        let liveSignalControl = {enabled:false, mode:'random', selectedSignal:'1', sequence:[]};
+        let sequenceIndex = 0;
+
+        signalDb.ref('settings/liveSignalControl').on('value', snap => {
+            const data = snap.val() || {};
+            liveSignalControl = {
+                enabled: data.enabled === true,
+                mode: ['random','single','sequence'].includes(data.mode) ? data.mode : 'random',
+                selectedSignal: gameImages[data.selectedSignal] ? data.selectedSignal : '1',
+                sequence: Array.isArray(data.sequence) ? data.sequence.filter(k => !!gameImages[k]) : []
+            };
+            sequenceIndex = 0;
+            console.log('Live signal control updated:', liveSignalControl);
+        });
+
+
+        // ============================================================
+        // 🌐 REAL CRAZY TIME STATISTICS
+        // Public third-party observed-spin feed.
+        // Statistics stay separate from the signal system.
+        // ============================================================
+        const CT_RECENT_API = 'https://www.crazytimewheel.it/api/crazy-time/recent-results/';
+        const CT_STATS_REFRESH_MS = 15000;
+
+        const ctLatestResult = document.getElementById('ctLatestResult');
+        const ctTrackedSpins = document.getElementById('ctTrackedSpins');
+        const ctBonusHits = document.getElementById('ctBonusHits');
+        const ctBonusRate = document.getElementById('ctBonusRate');
+        const ctStatsStatus = document.getElementById('ctStatsStatus');
+        const ctStatsUpdated = document.getElementById('ctStatsUpdated');
+
+        function normalizeCrazyTimeResult(value) {
+            if (value === undefined || value === null) return '';
+
+            const raw = String(value).trim();
+            const compact = raw.toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+
+            const map = {
+                '1': '1',
+                '2': '2',
+                '5': '5',
+                '10': '10',
+                'coin flip': 'COIN FLIP',
+                'coinflip': 'COIN FLIP',
+                'cash hunt': 'CASH HUNT',
+                'cashhunt': 'CASH HUNT',
+                'pachinko': 'PACHINKO',
+                'crazy time': 'CRAZY TIME',
+                'crazytime': 'CRAZY TIME'
+            };
+
+            return map[compact] || raw.toUpperCase();
+        }
+
+        function extractCrazyTimeRows(payload) {
+            if (Array.isArray(payload)) return payload;
+
+            const possible = [
+                payload?.results,
+                payload?.spins,
+                payload?.data,
+                payload?.items,
+                payload?.history,
+                payload?.recent_results,
+                payload?.recentResults
+            ];
+
+            for (const value of possible) {
+                if (Array.isArray(value)) return value;
+                if (value && Array.isArray(value.results)) return value.results;
+                if (value && Array.isArray(value.spins)) return value.spins;
+                if (value && Array.isArray(value.items)) return value.items;
+            }
+
+            return [];
+        }
+
+        function getCrazyTimeResult(row) {
+            if (row === undefined || row === null) return '';
+
+            if (typeof row === 'string' || typeof row === 'number') {
+                return normalizeCrazyTimeResult(row);
+            }
+
+            const possible = [
+                row.segment,
+                row.result,
+                row.outcome,
+                row.value,
+                row.name,
+                row.label,
+                row.winning_segment,
+                row.winningSegment,
+                row?.spin?.segment,
+                row?.spin?.result
+            ];
+
+            for (const value of possible) {
+                if (value !== undefined && value !== null && String(value).trim() !== '') {
+                    return normalizeCrazyTimeResult(value);
+                }
+            }
+
+            return '';
+        }
+
+        function renderCrazyTimeStatistics(rows) {
+            const results = rows
+                .map(getCrazyTimeResult)
+                .filter(Boolean);
+
+            if (!results.length) {
+                throw new Error('No usable Crazy Time results');
+            }
+
+            const bonusSet = new Set(['COIN FLIP', 'CASH HUNT', 'PACHINKO', 'CRAZY TIME']);
+            const bonusCount = results.filter(x => bonusSet.has(x)).length;
+            const rate = (bonusCount / results.length) * 100;
+
+            ctLatestResult.textContent = results[0];
+            ctTrackedSpins.textContent = results.length.toLocaleString();
+            ctBonusHits.textContent = bonusCount.toLocaleString();
+            ctBonusRate.textContent = rate.toFixed(1) + '%';
+
+            ctStatsStatus.textContent = 'LIVE';
+            ctStatsStatus.classList.remove('offline');
+
+            const now = new Date();
+            ctStatsUpdated.textContent = now.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        async function updateCrazyTimeStatistics() {
+            try {
+                ctStatsStatus.textContent = 'SYNCING';
+                ctStatsStatus.classList.remove('offline');
+
+                const response = await fetch(CT_RECENT_API, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                    cache: 'no-store'
+                });
+
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
+
+                const payload = await response.json();
+                const rows = extractCrazyTimeRows(payload);
+
+                renderCrazyTimeStatistics(rows);
+            } catch (err) {
+                console.warn('Crazy Time statistics unavailable:', err);
+                ctStatsStatus.textContent = 'UNAVAILABLE';
+                ctStatsStatus.classList.add('offline');
+                ctStatsUpdated.textContent = 'Feed unavailable';
+            }
+        }
+
+        updateCrazyTimeStatistics();
+        setInterval(updateCrazyTimeStatistics, CT_STATS_REFRESH_MS);
+
+
+        // ============================================================
+        // 🎮 GAME DATA
+        // ============================================================
+        const games = [
+            { name: '1', imageKey: '1', confidenceRange: [85, 95] },
+            { name: '2', imageKey: '2', confidenceRange: [80, 92] },
+            { name: '5', imageKey: '5', confidenceRange: [75, 90] },
+            { name: '10', imageKey: '10', confidenceRange: [70, 88] },
+            { name: 'PACHINKO', imageKey: 'PACHINKO', confidenceRange: [60, 85] },
+            { name: 'COIN FLIP', imageKey: 'COIN FLIP', confidenceRange: [68, 89] },
+            { name: 'CASH HUNT', imageKey: 'CASH HUNT', confidenceRange: [65, 87] },
+            { name: 'CRAZY TIME', imageKey: 'CRAZY TIME', confidenceRange: [55, 82] }
+        ];
+
+
+// ============================================================
+        // 🎯 DOM ELEMENTS
+        // ============================================================
+        const placeholderBox = document.getElementById('placeholderBox');
+        const signalCard = document.getElementById('signalCard');
+        const signalImage = document.getElementById('signalImage');
+        const signalName = document.getElementById('signalName');
+        const confidenceText = document.getElementById('confidenceText');
+        const confidenceFill = document.getElementById('confidenceFill');
+        const predictBtn = document.getElementById('predictBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+// ============================================================
+        // 🔙 GO BACK
+        // ============================================================
+        function goBack() {
+            window.location.href = 'dashboard.html';
+        }
+// ============================================================
+        // 🔄 RESET DISPLAY
+        // ============================================================
+        function resetDisplay() {
+            placeholderBox.style.display = 'block';
+            signalCard.style.display = 'none';
+            confidenceText.innerHTML = '<i class="fas fa-chart-line"></i> AI Confidence: 0%';
+            confidenceFill.style.width = '0%';
+        }
+
+
+        // ============================================================
+        // PROFESSIONAL SIGNAL FX
+        // Fast blink, full black phase, stronger rear glow,
+        // fast micro-shake/motion, smooth enter/exit.
+        // ============================================================
+        let signalBlinkTimer = null;
+        let signalMotionFrame = null;
+        let signalBlinkState = false;
+        let signalMotionStart = 0;
+
+        function stopSignalFx() {
+            if (signalBlinkTimer) {
+                clearInterval(signalBlinkTimer);
+                signalBlinkTimer = null;
+            }
+            if (signalMotionFrame) {
+                cancelAnimationFrame(signalMotionFrame);
+                signalMotionFrame = null;
+            }
+        }
+
+        function startSignalProfessionalFx() {
+            const img = document.getElementById('signalImage');
+            const glow = document.getElementById('signalImageGlow');
+            if (!img || !glow) return;
+
+            stopSignalFx();
+
+            img.style.transition = 'opacity 145ms ease-in-out, filter 145ms ease-in-out';
+            glow.style.transition = 'opacity 170ms ease-in-out, transform 170ms ease-in-out, filter 170ms ease-in-out';
+
+            // Base night-black look
+            img.style.opacity = '1';
+            img.style.filter =
+                'brightness(.48) contrast(1.38) saturate(.82) ' +
+                'drop-shadow(0 8px 13px rgba(0,0,0,.72)) ' +
+                'drop-shadow(0 0 10px rgba(90,145,255,.28))';
+
+            glow.style.opacity = '.38';
+            glow.style.transform = 'scale(.98)';
+            glow.style.filter = 'blur(22px)';
+
+            signalBlinkState = false;
+
+            // Faster blink. Dark phase becomes effectively fully black.
+            signalBlinkTimer = setInterval(() => {
+                signalBlinkState = !signalBlinkState;
+
+                if (signalBlinkState) {
+                    // Bright pulse
+                    img.style.opacity = '1';
+                    img.style.filter =
+                        'brightness(.82) contrast(1.24) saturate(.98) ' +
+                        'drop-shadow(0 8px 14px rgba(0,0,0,.62)) ' +
+                        'drop-shadow(0 0 28px rgba(92,150,255,.95))';
+
+                    glow.style.opacity = '1';
+                    glow.style.transform = 'scale(1.18)';
+                    glow.style.filter = 'blur(27px)';
+                } else {
+                    // Full black blink: image disappears into night black
+                    img.style.opacity = '.06';
+                    img.style.filter =
+                        'brightness(0) contrast(1.6) saturate(.45) ' +
+                        'drop-shadow(0 8px 14px rgba(0,0,0,.82))';
+
+                    glow.style.opacity = '.16';
+                    glow.style.transform = 'scale(.96)';
+                    glow.style.filter = 'blur(20px)';
+                }
+            }, 285);
+
+            // Fast but controlled micro-shake / movement.
+            signalMotionStart = performance.now();
+            function motion(now) {
+                const t = (now - signalMotionStart) / 1000;
+
+                const x = Math.sin(t * 14.0) * 1.9 + Math.sin(t * 22.0) * 0.7;
+                const y = Math.sin(t * 11.5) * 1.4;
+                const r = Math.sin(t * 9.5) * 0.55;
+                const s = 1 + Math.sin(t * 7.5) * 0.008;
+
+                img.style.transform =
+                    `translate3d(${x}px, ${y}px, 0) rotate(${r}deg) scale(${s})`;
+
+                signalMotionFrame = requestAnimationFrame(motion);
+            }
+            signalMotionFrame = requestAnimationFrame(motion);
+        }
+
+        function animateSignalIn() {
+            signalCard.classList.remove('signal-leaving');
+            signalCard.classList.remove('signal-entering');
+            void signalCard.offsetWidth;
+            signalCard.classList.add('signal-entering');
+
+            setTimeout(() => {
+                signalCard.classList.remove('signal-entering');
+                startSignalProfessionalFx();
+            }, 540);
+        }
+
+        function animateSignalOut(callback) {
+            if (signalCard.style.display === 'none') {
+                if (callback) callback();
+                return;
+            }
+
+            stopSignalFx();
+            signalCard.classList.remove('signal-entering');
+            signalCard.classList.add('signal-leaving');
+
+            setTimeout(() => {
+                signalCard.classList.remove('signal-leaving');
+                signalCard.style.display = 'none';
+                if (callback) callback();
+            }, 310);
+        }
+
+
+        // ============================================================
+        // 📊 SHOW PREDICTION - FIXED
+        // ============================================================
+        function showPrediction(game, confidence) {
+            console.log('🎯 Showing prediction:', game, confidence);
+            
+            const imageUrl = gameImages[game.imageKey];
+            if (imageUrl) {
+                signalImage.src = imageUrl;
+                signalImage.style.display = 'block';
+                placeholderBox.style.display = 'none';
+                signalCard.style.display = 'flex';
+                signalName.textContent = game.name;
+                animateSignalIn();
+                
+                // ✅ Store in localStorage for persistence
+                localStorage.setItem('lastSignal', JSON.stringify({
+                    game: game,
+                    confidence: confidence,
+                }));
+                
+                console.log('✅ Signal displayed:', game.name);
+            } else {
+                console.error('❌ Image not found for:', game.imageKey);
+            }
+            
+            confidenceText.innerHTML = `<i class="fas fa-chart-line"></i> AI Confidence: ${confidence}%`;
+            confidenceFill.style.width = confidence + '%';
+        }
+
+        // ============================================================
+        // 🎯 GENERATE PREDICTION - FIXED
+        // ============================================================
+        function generatePrediction() {
+            console.log('🎯 Generating prediction...');
+            
+            predictBtn.disabled = true;
+            refreshBtn.disabled = true;
+
+            // Show loading with professional exit animation
+            const showLoadingState = () => {
+                placeholderBox.innerHTML = `
+                    <div class="loading-spinner"></div>
+                    <div class="main-text">Analyzing Patterns...</div>
+                    <div class="sub-text">Please wait</div>
+                `;
+                placeholderBox.style.display = 'block';
+                confidenceText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CALCULATING...';
+                confidenceFill.style.width = '0%';
+            };
+
+            if (signalCard.style.display !== 'none') {
+                animateSignalOut(showLoadingState);
+            } else {
+                showLoadingState();
+            }
+
+            // Simulate processing
+            setTimeout(() => {
+                // Select according to Admin Live Signal Control
+                let selectedKey = null;
+                if (liveSignalControl.enabled) {
+                    if (liveSignalControl.mode === 'single') {
+                        selectedKey = liveSignalControl.selectedSignal;
+                    } else if (liveSignalControl.mode === 'sequence' && liveSignalControl.sequence.length) {
+                        selectedKey = liveSignalControl.sequence[sequenceIndex % liveSignalControl.sequence.length];
+                        sequenceIndex++;
+                    } else {
+                        const keys = Object.keys(gameImages);
+                        selectedKey = keys[Math.floor(Math.random() * keys.length)];
+                    }
+                } else {
+                    const keys = Object.keys(gameImages);
+                    selectedKey = keys[Math.floor(Math.random() * keys.length)];
+                }
+                let selectedGame = games.find(g => g.imageKey === selectedKey) || games[0];
+
+                const confidence = Math.floor(Math.random() * (selectedGame.confidenceRange[1] - selectedGame.confidenceRange[0] + 1)) + selectedGame.confidenceRange[0];
+
+                // Show prediction
+                showPrediction(selectedGame, confidence);
+
+
+
+                predictBtn.disabled = false;
+                refreshBtn.disabled = false;
+                
+                console.log('✅ Prediction generated successfully!');
+            }, 2000);
+        }
+
+        // ============================================================
+        // 🔄 REFRESH PREDICTION
+        // ============================================================
+        function refreshPrediction() {
+            console.log('🔄 Refreshing prediction...');
+            resetDisplay();
+            placeholderBox.innerHTML = `
+                <i class="fas fa-hand-pointer"></i>
+                <div class="main-text">Click Get Signal To Start Live Session</div>
+                <div class="sub-text">Get instant predictions</div>
+            `;
+            // Clear stored signal
+            localStorage.removeItem('lastSignal');
+            
+
+        }
+
+        // ============================================================
+        // 💬 TOAST
+        // ============================================================
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = 'toast ' + (isError ? 'toast-error' : 'toast-success') + ' show';
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // ============================================================
+        // 🔄 LOAD LAST SIGNAL (Page Refresh)
+        // ============================================================
+        function loadLastSignal() {
+            const saved = localStorage.getItem('lastSignal');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    const elapsed = Date.now() - data.time;
+                    // Only show if less than 5 minutes old
+                    if (elapsed < 5 * 60 * 1000) {
+                        console.log('📦 Loading saved signal:', data.game);
+                        showPrediction(data.game, data.confidence);
+                        return true;
+                    } else {
+                        console.log('⏰ Saved signal expired');
+                        localStorage.removeItem('lastSignal');
+                    }
+                } catch (e) {
+                    console.error('❌ Error loading saved signal:', e);
+                    localStorage.removeItem('lastSignal');
+                }
+            }
+            return false;
+        }
+
+        // ============================================================
+        // 🚀 INIT
+        // ============================================================
+        resetDisplay();
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // ✅ Load last signal on page load
+        const hasSignal = loadLastSignal();
+        if (hasSignal) {
+            console.log('✅ Loaded previous signal');
+        }
+
+
+
+        // Visibility change - pause/resume auto refresh
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            } else {
+}
+        });
+
+        // Button event listeners
+        predictBtn.addEventListener('click', generatePrediction);
+        refreshBtn.addEventListener('click', refreshPrediction);
+    </script>
+</body>
+</html>
